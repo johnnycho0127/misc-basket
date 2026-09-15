@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Presentation Callout & Focus Builder</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&family=Merriweather:ital,wght@0,400;0,700;1,400&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .font-mono-custom { font-family: 'JetBrains Mono', monospace; }
+    .font-serif-custom { font-family: 'Merriweather', serif; }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 1);
+    }
+
+    /* Checkerboard background for canvas preview */
+    .bg-checker {
+      background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none bg-slate-950 text-slate-100">
+
+  <!-- Header Navigation -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 z-20">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
+        <i data-lucide="focus" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
+          SlideCallout <span class="text-[10px] uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+        </h1>
+        <p class="text-xs text-slate-400">Create slide-ready magnified annotations & text callouts</p>
+      </div>
+    </div>
+
+    <!-- Right Header Actions -->
+    <div class="flex items-center space-x-3">
+      <label for="imageUpload" class="cursor-pointer bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2 border border-slate-700 shadow-sm">
+        <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i>
+        <span>Upload Screenshot</span>
+        <input type="file" id="imageUpload" accept="image/*" class="hidden">
+      </label>
+
+      <button id="exportBtn" class="bg-indigo-600 hover:bg-indigo-500 active:bg-indigo-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-lg shadow-indigo-600/20 transition flex items-center gap-2 border border-indigo-500">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Export PNG for Slides</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Left Interactive Canvas Workspace -->
+    <main class="flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center relative overflow-hidden group">
+      
+      <!-- Subtle Grid Background -->
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
+
+      <!-- Main Interactive Canvas Render Area -->
+      <div id="canvasWrapper" class="relative max-w-full max-h-full flex items-center justify-center rounded-xl shadow-2xl overflow-hidden border border-slate-800/80 bg-slate-900/60 bg-checker">
+        
+        <!-- Render Canvas (Combines image + source highlight + callout line + callout box) -->
+        <canvas id="mainCanvas" class="block max-w-full max-h-[calc(100vh-140px)] object-contain cursor-default"></canvas>
+
+        <!-- Empty State Overlay -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-950/95 z-30">
+          <div class="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 mb-4 text-indigo-400 shadow-inner">
+            <i data-lucide="image-plus" class="w-12 h-12"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Upload Your Slide Screenshot</h3>
+          <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+            Highlight small or unreadable text on dense web screenshots, documents, or UI designs, and expand it into a clean presentation callout card.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <label for="imageUpload2" class="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Choose Image File
+              <input type="file" id="imageUpload2" accept="image/*" class="hidden">
+            </label>
+            <span class="text-xs text-slate-500">or try a sample:</span>
+            <button onclick="loadSampleImage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Sample Screenshot
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Canvas Instructions -->
+      <div id="canvasHint" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur border border-slate-800 px-4 py-2 rounded-full text-xs text-slate-300 shadow-xl pointer-events-none flex items-center gap-2 opacity-0 transition-opacity duration-300">
+        <i data-lucide="move" class="w-3.5 h-3.5 text-indigo-400"></i>
+        <span>Drag the <b>Target Box</b> or <b>Callout Card</b> to position them. Resize from handles.</span>
+      </div>
+    </main>
+
+    <!-- Right Control Panel -->
+    <aside class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col h-full overflow-y-auto shrink-0 z-10">
+      
+      <!-- Panel Header Tabs -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h2 class="font-bold text-slate-200 text-xs tracking-wider uppercase flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> Callout Customizer
+        </h2>
+      </div>
+
+      <div class="p-5 space-y-6 flex-1">
+
+        <!-- Mode Toggle Switch (Cropped Image vs Editable Text) -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Callout Content Type</label>
+          <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+            <button id="modeCropBtn" class="py-2 px-3 bg-indigo-600 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm">
+              <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> Zoom Crop
+            </button>
+            <button id="modeTextBtn" class="py-2 px-3 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="type" class="w-3.5 h-3.5"></i> Custom Text
+            </button>
+          </div>
+        </div>
+
+        <!-- TEXT EDITING SECTION (Visible when in Text Mode) -->
+        <div id="textControlsSection" class="space-y-4 hidden border-l-2 border-indigo-500 pl-3">
+          <h3 class="text-xs font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+            <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Text Overlay Settings
+          </h3>
+
+          <!-- Text Content Field -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-slate-300">Callout Text Content</label>
+            <textarea id="textContentInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-y font-sans leading-relaxed" placeholder="Type highlight text here..."></textarea>
+          </div>
+
+          <!-- Font Size & Weight -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Font Size (<span id="fontSizeVal">18</span>px)</label>
+              <input type="range" id="fontSizeSlider" min="12" max="36" step="1" value="18" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Font Weight</label>
+              <select id="fontWeightSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="normal">Normal</option>
+                <option value="600" selected>Semibold</option>
+                <option value="bold">Bold</option>
+                <option value="800">Extra Bold</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Font Family & Alignment -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Font Style</label>
+              <select id="fontFamilySelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="Inter">Sans-Serif</option>
+                <option value="Merriweather">Serif</option>
+                <option value="JetBrains Mono">Monospace</option>
+              </select>
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Alignment</label>
+              <div class="flex bg-slate-950 border border-slate-800 rounded-lg p-0.5">
+                <button id="alignLeftBtn" class="flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
+                <button id="alignCenterBtn" class="flex-1 py-1 text-white bg-slate-800 rounded flex justify-center"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
+                <button id="alignRightBtn" class="flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Text Color Picker -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-medium text-slate-300 block">Text Color</span>
+            <div class="flex items-center gap-2">
+              <input type="color" id="textColorPicker" value="#ffffff" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+              <div class="flex gap-1.5">
+                <button onclick="setTextColor('#ffffff')" class="w-5 h-5 rounded-full bg-white border border-slate-600"></button>
+                <button onclick="setTextColor('#f8fafc')" class="w-5 h-5 rounded-full bg-slate-100 border border-slate-600"></button>
+                <button onclick="setTextColor('#fef08a')" class="w-5 h-5 rounded-full bg-yellow-200 border border-slate-600"></button>
+                <button onclick="setTextColor('#38bdf8')" class="w-5 h-5 rounded-full bg-sky-400 border border-slate-600"></button>
+                <button onclick="setTextColor('#4ade80')" class="w-5 h-5 rounded-full bg-green-400 border border-slate-600"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CROP MAGNIFICATION SECTION (Visible in Zoom Crop mode) -->
+        <div id="cropControlsSection" class="space-y-3 border-l-2 border-indigo-500 pl-3">
+          <h3 class="text-xs font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+            <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> Crop & Zoom Settings
+          </h3>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Magnification Scale</span>
+              <span id="zoomScaleVal" class="text-indigo-400 font-semibold">1.8x</span>
+            </div>
+            <input type="range" id="zoomScaleSlider" min="1.0" max="3.5" step="0.1" value="1.8" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- CALLOUT CARD APPEARANCE -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Callout Card Style</h3>
+
+          <!-- Card Background Color -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-medium text-slate-300 block">Card Background</span>
+            <div class="flex items-center gap-2">
+              <input type="color" id="cardBgColorPicker" value="#0f172a" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+              <div class="flex gap-1.5 flex-wrap">
+                <button onclick="setCardBgColor('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600" title="Dark Slate"></button>
+                <button onclick="setCardBgColor('#18181b')" class="w-5 h-5 rounded-full bg-zinc-900 border border-slate-600" title="Zinc Dark"></button>
+                <button onclick="setCardBgColor('#ffffff')" class="w-5 h-5 rounded-full bg-white border border-slate-600" title="Clean White"></button>
+                <button onclick="setCardBgColor('#fef3c7')" class="w-5 h-5 rounded-full bg-amber-100 border border-slate-600" title="Note Yellow"></button>
+                <button onclick="setCardBgColor('#1e1b4b')" class="w-5 h-5 rounded-full bg-indigo-950 border border-slate-600" title="Deep Indigo"></button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card Border Accent Color & Thickness -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-slate-300 block">Accent Color</span>
+              <input type="color" id="accentColorPicker" value="#6366f1" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+            </div>
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-slate-300 block">Border Width</span>
+              <input type="range" id="borderWidthSlider" min="1" max="8" step="1" value="3" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Card Corner Radius & Drop Shadow -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Rounded Corner</label>
+              <input type="range" id="borderRadiusSlider" min="0" max="24" step="2" value="12" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Drop Shadow</label>
+              <select id="shadowSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="none">None</option>
+                <option value="medium">Soft</option>
+                <option value="heavy" selected>Deep Slide</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- CONNECTOR LINE STYLES -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Leader Line / Arrow</h3>
+
+          <!-- Connector Line Type -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-slate-300">Line Style</label>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+              <button id="lineStyleStraightBtn" class="py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium">Straight</button>
+              <button id="lineStyleCurvedBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium">Curved</button>
+              <button id="lineStyleStepBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium">Step Arc</button>
+            </div>
+          </div>
+
+          <!-- Line Color & Dash -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-slate-300 block">Line Color</span>
+              <input type="color" id="lineColorPicker" value="#818cf8" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+            </div>
+            <div class="space-y-1.5">
+              <label class="text-xs font-medium text-slate-300">Dash Pattern</label>
+              <select id="lineDashSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                <option value="solid" selected>Solid Line</option>
+                <option value="dashed">Dashed</option>
+                <option value="dotted">Dotted</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-4 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-500 text-center">
+        Designed for High-Res Presentation Exports (100% Crisp Vector Lines)
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Elements
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const imageUpload = document.getElementById('imageUpload');
+    const imageUpload2 = document.getElementById('imageUpload2');
+    const exportBtn = document.getElementById('exportBtn');
+    const emptyState = document.getElementById('emptyState');
+    const canvasHint = document.getElementById('canvasHint');
+
+    // Controls DOM
+    const modeCropBtn = document.getElementById('modeCropBtn');
+    const modeTextBtn = document.getElementById('modeTextBtn');
+    const cropControlsSection = document.getElementById('cropControlsSection');
+    const textControlsSection = document.getElementById('textControlsSection');
+
+    const textContentInput = document.getElementById('textContentInput');
+    const fontSizeSlider = document.getElementById('fontSizeSlider');
+    const fontSizeVal = document.getElementById('fontSizeVal');
+    const fontWeightSelect = document.getElementById('fontWeightSelect');
+    const fontFamilySelect = document.getElementById('fontFamilySelect');
+    const textColorPicker = document.getElementById('textColorPicker');
+
+    const alignLeftBtn = document.getElementById('alignLeftBtn');
+    const alignCenterBtn = document.getElementById('alignCenterBtn');
+    const alignRightBtn = document.getElementById('alignRightBtn');
+
+    const zoomScaleSlider = document.getElementById('zoomScaleSlider');
+    const zoomScaleVal = document.getElementById('zoomScaleVal');
+
+    const cardBgColorPicker = document.getElementById('cardBgColorPicker');
+    const accentColorPicker = document.getElementById('accentColorPicker');
+    const borderWidthSlider = document.getElementById('borderWidthSlider');
+    const borderRadiusSlider = document.getElementById('borderRadiusSlider');
+    const shadowSelect = document.getElementById('shadowSelect');
+
+    const lineStyleStraightBtn = document.getElementById('lineStyleStraightBtn');
+    const lineStyleCurvedBtn = document.getElementById('lineStyleCurvedBtn');
+    const lineStyleStepBtn = document.getElementById('lineStyleStepBtn');
+    const lineColorPicker = document.getElementById('lineColorPicker');
+    const lineDashSelect = document.getElementById('lineDashSelect');
+
+    // App State
+    let loadedImage = null;
+
+    let state = {
+      mode: 'crop', // 'crop' | 'text'
+      
+      // Target Frame on main image (percentages 0..1)
+      target: {
+        x: 0.2,
+        y: 0.35,
+        w: 0.25,
+        h: 0.20
+      },
+
+      // Callout Box Position & Size (percentages 0..1 relative to canvas)
+      callout: {
+        x: 0.55,
+        y: 0.25,
+        w: 0.38,
+        h: 0.40
+      },
+
+      // Text settings
+      text: "Highlighted key excerpt from screenshot.\nEditable text replaces unreadable small fonts for presentation slides.",
+      fontSize: 18,
+      fontWeight: "600",
+      fontFamily: "Inter",
+      textAlign: "center",
+      textColor: "#ffffff",
+
+      // Zoom scale for crop mode
+      zoomScale: 1.8,
+
+      // Styling
+      cardBgColor: "#0f172a",
+      accentColor: "#6366f1",
+      borderWidth: 3,
+      borderRadius: 12,
+      shadow: "heavy",
+
+      // Connector line
+      lineStyle: "straight", // 'straight' | 'curved' | 'step'
+      lineColor: "#818cf8",
+      lineDash: "solid"
+    };
+
+    // Interaction State
+    let activeDrag = null; // 'target' | 'target-resize' | 'callout' | 'callout-resize'
+    let dragStartPos = { x: 0, y: 0 };
+    let initialBounds = null;
+
+    // --- Image Upload Handling ---
+
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          loadedImage = img;
+          emptyState.style.display = 'none';
+          canvasHint.classList.remove('opacity-0');
+          initDefaultPositions();
+          resizeCanvas();
+          render();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    imageUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    imageUpload2.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    function loadSampleImage() {
+      // Create a nice mock browser window sample with dense text
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 1200;
+      tempCanvas.height = 700;
+      const tCtx = tempCanvas.getContext('2d');
+
+      // Browser Header
+      tCtx.fillStyle = "#1e293b";
+      tCtx.fillRect(0, 0, 1200, 700);
+
+      // Top Bar
+      tCtx.fillStyle = "#0f172a";
+      tCtx.fillRect(0, 0, 1200, 48);
+      
+      // Window Dots
+      tCtx.fillStyle = "#ef4444"; tCtx.beginPath(); tCtx.arc(24, 24, 6, 0, Math.PI*2); tCtx.fill();
+      tCtx.fillStyle = "#f59e0b"; tCtx.beginPath(); tCtx.arc(44, 24, 6, 0, Math.PI*2); tCtx.fill();
+      tCtx.fillStyle = "#10b981"; tCtx.beginPath(); tCtx.arc(64, 24, 6, 0, Math.PI*2); tCtx.fill();
+
+      // URL bar
+      tCtx.fillStyle = "#334155";
+      tCtx.beginPath(); tCtx.roundRect(100, 10, 600, 28, 6); tCtx.fill();
+      tCtx.fillStyle = "#94a3b8"; tCtx.font = "13px sans-serif";
+      tCtx.fillText("https://quora.com/what-is-a-chapter-book-dont-all-books-have-chapters", 115, 28);
+
+      // Main content body
+      tCtx.fillStyle = "#020617";
+      tCtx.fillRect(0, 48, 1200, 652);
+
+      // Question Title
+      tCtx.fillStyle = "#f8fafc";
+      tCtx.font = "bold 26px sans-serif";
+      tCtx.fillText("What is a chapter book? Don't all books have chapters?", 60, 110);
+
+      // Author info
+      tCtx.fillStyle = "#94a3b8";
+      tCtx.font = "14px sans-serif";
+      tCtx.fillText("Lawrence Watt-Evans • 35 years of professional writing", 60, 145);
+
+      // Dense small text block (the target focus area)
+      tCtx.fillStyle = "#cbd5e1";
+      tCtx.font = "15px/1.6 sans-serif";
+      tCtx.fillText("A 'chapter book' means a book aimed at young readers — older than the kids who read", 60, 190);
+      tCtx.fillText("picture books, younger than the 'young adult' audience — that's long enough to be divided", 60, 215);
+      tCtx.fillText("into chapters, and is not heavily illustrated.", 60, 240);
+
+      tCtx.fillText("Yes, it's a stupid name. I don't know how it originated; I found it confusing when I first", 60, 280);
+      tCtx.fillText("encountered it, too.", 60, 305);
+
+      tCtx.fillText("And no, not all books have chapters. Most do, but not all. Fantasy humor writer Terry", 60, 345);
+      tCtx.fillText("Pratchett only used chapters in maybe a quarter of his books. Other writers have also", 60, 370);
+      tCtx.fillText("written books with no chapters, though it's unusual.", 60, 395);
+
+      // Sidebar box
+      tCtx.fillStyle = "#0f172a";
+      tCtx.strokeStyle = "#1e293b";
+      tCtx.lineWidth = 2;
+      tCtx.beginPath(); tCtx.roundRect(780, 90, 380, 500, 12); tCtx.fill(); tCtx.stroke();
+      tCtx.fillStyle = "#6366f1"; tCtx.font = "bold 16px sans-serif";
+      tCtx.fillText("Related Questions", 800, 130);
+
+      const sampleImg = new Image();
+      sampleImg.onload = () => {
+        loadedImage = sampleImg;
+        emptyState.style.display = 'none';
+        canvasHint.classList.remove('opacity-0');
+        initDefaultPositions();
+        resizeCanvas();
+        render();
+      };
+      sampleImg.src = tempCanvas.toDataURL();
+    }
+
+    function initDefaultPositions() {
+      // Set reasonable default relative coordinates
+      state.target = { x: 0.04, y: 0.22, w: 0.58, h: 0.18 };
+      state.callout = { x: 0.52, y: 0.48, w: 0.44, h: 0.42 };
+      state.text = "A \"chapter book\" means a book aimed at young readers — older than the kids who read picture books, younger than the \"young adult\" audience.";
+      textContentInput.value = state.text;
+    }
+
+    function resizeCanvas() {
+      if (!loadedImage) return;
+      canvas.width = loadedImage.width;
+      canvas.height = loadedImage.height;
+    }
+
+    window.addEventListener('resize', () => {
+      if (loadedImage) render();
+    });
+
+    // --- STREAMING_CHUNK:Rendering Canvas Callouts, Lines & Highlights... ---
+
+    function render() {
+      if (!loadedImage) return;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      // 1. Draw Original Background Image
+      ctx.drawImage(loadedImage, 0, 0, W, H);
+
+      // Convert relative coords to actual pixel values
+      const tX = state.target.x * W;
+      const tY = state.target.y * H;
+      const tW = state.target.w * W;
+      const tH = state.target.h * H;
+
+      const cX = state.callout.x * W;
+      const cY = state.callout.y * H;
+      const cW = state.callout.w * W;
+      const cH = state.callout.h * H;
+
+      // 2. Draw Dimming Mask over original image (Except Target Region)
+      ctx.save();
+      ctx.fillStyle = "rgba(2, 6, 23, 0.45)";
+      ctx.beginPath();
+      ctx.rect(0, 0, W, H);
+      // Cut out target box
+      ctx.rect(tX, tY, tW, tH);
+      ctx.fill("evenodd");
+      ctx.restore();
+
+      // 3. Draw Leader / Connector Line
+      drawConnectorLine(tX, tY, tW, tH, cX, cY, cW, cH);
+
+      // 4. Draw Source Target Frame Box
+      ctx.save();
+      ctx.strokeStyle = state.accentColor;
+      ctx.lineWidth = Math.max(3, state.borderWidth);
+      ctx.setLineDash([6, 4]);
+      ctx.strokeRect(tX, tY, tW, tH);
+
+      // Target Corner Handles
+      ctx.setLineDash([]);
+      ctx.fillStyle = state.accentColor;
+      const handleSize = 8 * (W / 1000);
+      drawCornerHandles(tX, tY, tW, tH, handleSize);
+      ctx.restore();
+
+      // 5. Draw Callout Box (Card)
+      drawCalloutCard(cX, cY, cW, cH, tX, tY, tW, tH);
+    }
+
+    function drawCornerHandles(x, y, w, h, size) {
+      ctx.fillRect(x - size/2, y - size/2, size, size);
+      ctx.fillRect(x + w - size/2, y - size/2, size, size);
+      ctx.fillRect(x - size/2, y + h - size/2, size, size);
+      ctx.fillRect(x + w - size/2, y + h - size/2, size, size);
+    }
+
+    function drawConnectorLine(tx, ty, tw, th, cx, cy, cw, ch) {
+      // Find closest anchor points between target frame and callout box
+      const targetCenter = { x: tx + tw/2, y: ty + th/2 };
+      const calloutCenter = { x: cx + cw/2, y: cy + ch/2 };
+
+      // Determine connector anchor on target (edge facing callout)
+      let p1 = { x: tx + tw, y: ty + th/2 };
+      if (calloutCenter.x < targetCenter.x) p1 = { x: tx, y: ty + th/2 };
+      if (Math.abs(calloutCenter.x - targetCenter.x) < tw/2) {
+        p1 = calloutCenter.y > targetCenter.y ? { x: tx + tw/2, y: ty + th } : { x: tx + tw/2, y: ty };
+      }
+
+      // Determine connector anchor on callout
+      let p2 = { x: cx, y: cy + ch/2 };
+      if (calloutCenter.x < targetCenter.x) p2 = { x: cx + cw, y: cy + ch/2 };
+
+      ctx.save();
+      ctx.strokeStyle = state.lineColor;
+      ctx.lineWidth = Math.max(2, state.borderWidth);
+
+      // Dash pattern
+      if (state.lineDash === 'dashed') ctx.setLineDash([8, 6]);
+      else if (state.lineDash === 'dotted') ctx.setLineDash([3, 4]);
+
+      ctx.beginPath();
+      ctx.moveTo(p1.x, p1.y);
+
+      if (state.lineStyle === 'straight') {
+        ctx.lineTo(p2.x, p2.y);
+      } else if (state.lineStyle === 'curved') {
+        const dx = (p2.x - p1.x) * 0.5;
+        ctx.bezierCurveTo(p1.x + dx, p1.y, p2.x - dx, p2.y, p2.x, p2.y);
+      } else if (state.lineStyle === 'step') {
+        const midX = p1.x + (p2.x - p1.x) / 2;
+        ctx.lineTo(midX, p1.y);
+        ctx.lineTo(midX, p2.y);
+        ctx.lineTo(p2.x, p2.y);
+      }
+      ctx.stroke();
+
+      // Draw Arrow Head at target end
+      drawArrowhead(p2, p1, Math.max(10, state.borderWidth * 3));
+      ctx.restore();
+    }
+
+    function drawArrowhead(from, to, radius) {
+      const x_center = to.x;
+      const y_center = to.y;
+      const angle = Math.atan2(to.y - from.y, to.x - from.x);
+
+      ctx.save();
+      ctx.fillStyle = state.lineColor;
+      ctx.beginPath();
+      ctx.moveTo(x_center, y_center);
+      ctx.lineTo(
+        x_center - radius * Math.cos(angle - Math.PI / 6),
+        y_center - radius * Math.sin(angle - Math.PI / 6)
+      );
+      ctx.lineTo(
+        x_center - radius * Math.cos(angle + Math.PI / 6),
+        y_center - radius * Math.sin(angle + Math.PI / 6)
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawCalloutCard(cx, cy, cw, ch, tx, ty, tw, th) {
+      ctx.save();
+
+      // Card Drop Shadow
+      if (state.shadow !== 'none') {
+        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
+        ctx.shadowBlur = state.shadow === 'heavy' ? 35 : 18;
+        ctx.shadowOffsetX = 0;
+        ctx.shadowOffsetY = state.shadow === 'heavy' ? 15 : 8;
+      }
+
+      // Background Card Shape
+      ctx.fillStyle = state.cardBgColor;
+      ctx.beginPath();
+      ctx.roundRect(cx, cy, cw, ch, state.borderRadius);
+      ctx.fill();
+
+      // Reset Shadow for Content Inner Clipping
+      ctx.shadowColor = 'transparent';
+
+      // Outer Border
+      ctx.lineWidth = state.borderWidth;
+      ctx.strokeStyle = state.accentColor;
+      ctx.stroke();
+
+      // Clip content inside Callout Rounded Rectangle
+      ctx.clip();
+
+      if (state.mode === 'crop') {
+        // --- CROP MODE: Render Scaled & Magnified Region ---
+        const zoom = state.zoomScale;
+        const cropW = tw;
+        const cropH = th;
+
+        // Draw cropped source portion stretched/scaled into callout
+        ctx.drawImage(
+          loadedImage,
+          tx, ty, cropW, cropH,
+          cx, cy, cw, ch
+        );
+      } else {
+        // --- TEXT MODE: Render Editable Styled Text Overlay ---
+        ctx.fillStyle = state.textColor;
+        ctx.font = `${state.fontWeight} ${state.fontSize * (canvas.width / 1000)}px ${state.fontFamily}, sans-serif`;
+        ctx.textAlign = state.textAlign;
+        ctx.textBaseline = "top";
+
+        const padding = 20 * (canvas.width / 1000);
+        const maxTextWidth = cw - padding * 2;
+        
+        let textX = cx + padding;
+        if (state.textAlign === 'center') textX = cx + cw / 2;
+        if (state.textAlign === 'right') textX = cx + cw - padding;
+
+        const lines = wrapText(ctx, state.text, maxTextWidth);
+        const lineHeight = state.fontSize * 1.4 * (canvas.width / 1000);
+        let startY = cy + padding;
+
+        lines.forEach((line) => {
+          ctx.fillText(line, textX, startY);
+          startY += lineHeight;
+        });
+      }
+
+      // Draw Resize Handle for Callout Box at Bottom-Right
+      ctx.restore();
+      ctx.save();
+      ctx.fillStyle = state.accentColor;
+      const size = 10 * (canvas.width / 1000);
+      ctx.beginPath();
+      ctx.roundRect(cx + cw - size - 2, cy + ch - size - 2, size, size, 2);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function wrapText(context, text, maxWidth) {
+      const paragraphs = text.split('\n');
+      let lines = [];
+
+      paragraphs.forEach(paragraph => {
+        const words = paragraph.split(' ');
+        let currentLine = '';
+
+        words.forEach(word => {
+          const testLine = currentLine ? `${currentLine} ${word}` : word;
+          const metrics = context.measureText(testLine);
+          if (metrics.width > maxWidth && currentLine) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        });
+        lines.push(currentLine);
+      });
+
+      return lines;
+    }
+
+    // --- STREAMING_CHUNK:Adding Drag, Drop & Resizing Event Handlers... ---
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+
+      return {
+        x: (clientX - rect.left) * scaleX,
+        y: (clientY - rect.top) * scaleY,
+        relX: (clientX - rect.left) / rect.width,
+        relY: (clientY - rect.top) / rect.height
+      };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (!loadedImage) return;
+      const pos = getCanvasCoords(e);
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const t = { x: state.target.x * W, y: state.target.y * H, w: state.target.w * W, h: state.target.h * H };
+      const c = { x: state.callout.x * W, y: state.callout.y * H, w: state.callout.w * W, h: state.callout.h * H };
+
+      const handleMargin = 16 * (W / 1000);
+
+      // Check Target Corner Handles (Resize)
+      if (Math.abs(pos.x - (t.x + t.w)) < handleMargin && Math.abs(pos.y - (t.y + t.h)) < handleMargin) {
+        activeDrag = 'target-resize';
+      } 
+      // Check Callout Resize Handle
+      else if (Math.abs(pos.x - (c.x + c.w)) < handleMargin && Math.abs(pos.y - (c.y + c.h)) < handleMargin) {
+        activeDrag = 'callout-resize';
+      }
+      // Check Inside Target Box
+      else if (pos.x >= t.x && pos.x <= t.x + t.w && pos.y >= t.y && pos.y <= t.y + t.h) {
+        activeDrag = 'target';
+      }
+      // Check Inside Callout Box
+      else if (pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) {
+        activeDrag = 'callout';
+      }
+
+      if (activeDrag) {
+        dragStartPos = { x: pos.relX, y: pos.relY };
+        initialBounds = activeDrag.startsWith('target') ? { ...state.target } : { ...state.callout };
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!activeDrag || !loadedImage) return;
+      const pos = getCanvasCoords(e);
+      const dx = pos.relX - dragStartPos.x;
+      const dy = pos.relY - dragStartPos.y;
+
+      if (activeDrag === 'target') {
+        state.target.x = Math.max(0, Math.min(1 - state.target.w, initialBounds.x + dx));
+        state.target.y = Math.max(0, Math.min(1 - state.target.h, initialBounds.y + dy));
+      } else if (activeDrag === 'callout') {
+        state.callout.x = Math.max(0, Math.min(1 - state.callout.w, initialBounds.x + dx));
+        state.callout.y = Math.max(0, Math.min(1 - state.callout.h, initialBounds.y + dy));
+      } else if (activeDrag === 'target-resize') {
+        state.target.w = Math.max(0.05, initialBounds.w + dx);
+        state.target.h = Math.max(0.05, initialBounds.h + dy);
+      } else if (activeDrag === 'callout-resize') {
+        state.callout.w = Math.max(0.1, initialBounds.w + dx);
+        state.callout.h = Math.max(0.1, initialBounds.h + dy);
+      }
+
+      render();
+    });
+
+    window.addEventListener('mouseup', () => { activeDrag = null; });
+
+    // Touch Support
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (activeDrag) {
+        const touch = e.touches[0];
+        window.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => { activeDrag = null; });
+
+    // --- STREAMING_CHUNK:Connecting Control Panel Event Listeners... ---
+
+    // Mode Toggle
+    modeCropBtn.addEventListener('click', () => {
+      state.mode = 'crop';
+      modeCropBtn.className = "py-2 px-3 bg-indigo-600 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm";
+      modeTextBtn.className = "py-2 px-3 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition";
+      cropControlsSection.classList.remove('hidden');
+      textControlsSection.classList.add('hidden');
+      render();
+    });
+
+    modeTextBtn.addEventListener('click', () => {
+      state.mode = 'text';
+      modeTextBtn.className = "py-2 px-3 bg-indigo-600 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm";
+      modeCropBtn.className = "py-2 px-3 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition";
+      textControlsSection.classList.remove('hidden');
+      cropControlsSection.classList.add('hidden');
+      render();
+    });
+
+    // Text inputs
+    textContentInput.addEventListener('input', (e) => {
+      state.text = e.target.value;
+      render();
+    });
+
+    fontSizeSlider.addEventListener('input', (e) => {
+      state.fontSize = parseInt(e.target.value, 10);
+      fontSizeVal.textContent = state.fontSize;
+      render();
+    });
+
+    fontWeightSelect.addEventListener('change', (e) => {
+      state.fontWeight = e.target.value;
+      render();
+    });
+
+    fontFamilySelect.addEventListener('change', (e) => {
+      state.fontFamily = e.target.value;
+      render();
+    });
+
+    textColorPicker.addEventListener('input', (e) => {
+      state.textColor = e.target.value;
+      render();
+    });
+
+    function setTextColor(color) {
+      state.textColor = color;
+      textColorPicker.value = color;
+      render();
+    }
+
+    // Text Align
+    alignLeftBtn.addEventListener('click', () => { setAlign('left'); });
+    alignCenterBtn.addEventListener('click', () => { setAlign('center'); });
+    alignRightBtn.addEventListener('click', () => { setAlign('right'); });
+
+    function setAlign(align) {
+      state.textAlign = align;
+      alignLeftBtn.className = align === 'left' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
+      alignCenterBtn.className = align === 'center' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
+      alignRightBtn.className = align === 'right' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
+      render();
+    }
+
+    // Zoom Scale
+    zoomScaleSlider.addEventListener('input', (e) => {
+      state.zoomScale = parseFloat(e.target.value);
+      zoomScaleVal.textContent = `${state.zoomScale.toFixed(1)}x`;
+      render();
+    });
+
+    // Callout Styling
+    cardBgColorPicker.addEventListener('input', (e) => {
+      state.cardBgColor = e.target.value;
+      render();
+    });
+
+    function setCardBgColor(color) {
+      state.cardBgColor = color;
+      cardBgColorPicker.value = color;
+      render();
+    }
+
+    accentColorPicker.addEventListener('input', (e) => {
+      state.accentColor = e.target.value;
+      render();
+    });
+
+    borderWidthSlider.addEventListener('input', (e) => {
+      state.borderWidth = parseInt(e.target.value, 10);
+      render();
+    });
+
+    borderRadiusSlider.addEventListener('input', (e) => {
+      state.borderRadius = parseInt(e.target.value, 10);
+      render();
+    });
+
+    shadowSelect.addEventListener('change', (e) => {
+      state.shadow = e.target.value;
+      render();
+    });
+
+    // Connector Line Buttons
+    lineStyleStraightBtn.addEventListener('click', () => {
+      state.lineStyle = 'straight';
+      updateLineButtons();
+      render();
+    });
+
+    lineStyleCurvedBtn.addEventListener('click', () => {
+      state.lineStyle = 'curved';
+      updateLineButtons();
+      render();
+    });
+
+    lineStyleStepBtn.addEventListener('click', () => {
+      state.lineStyle = 'step';
+      updateLineButtons();
+      render();
+    });
+
+    function updateLineButtons() {
+      lineStyleStraightBtn.className = state.lineStyle === 'straight' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
+      lineStyleCurvedBtn.className = state.lineStyle === 'curved' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
+      lineStyleStepBtn.className = state.lineStyle === 'step' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
+    }
+
+    lineColorPicker.addEventListener('input', (e) => {
+      state.lineColor = e.target.value;
+      render();
+    });
+
+    lineDashSelect.addEventListener('change', (e) => {
+      state.lineDash = e.target.value;
+      render();
+    });
+
+    // --- Export High-Res Image for Presentation Slides ---
+    exportBtn.addEventListener('click', () => {
+      if (!loadedImage) return;
+
+      render();
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+      const link = document.createElement('a');
+      link.download = `presentation-callout-${Date.now()}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    });
+
+    // Auto load sample image on startup for quick demonstration
+    window.addEventListener('load', () => {
+      loadSampleImage();
+    });
+  </script>
+</body>
+</html>
