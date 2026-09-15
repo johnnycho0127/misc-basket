@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Sanitizer & Clean Link Extractor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .transition-all-custom { transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+        .dark ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200">
+
+    <header class="border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md sticky top-0 z-40">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i class="fa-solid font-bold fa-link-slash text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg leading-tight tracking-tight">CleanURL<span class="text-brand-500">.link</span></h1>
+                    <p class="text-xs text-slate-500 dark:text-slate-400">Strip `=chatgpt.com` & tracking suffixes instantly</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-2">
+                <!-- Mode Toggle (Single vs Batch) -->
+                <div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center border border-slate-200 dark:border-slate-700">
+                    <button id="singleModeBtn" onclick="setMode('single')" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm">
+                        <i class="fa-solid fa-link mr-1.5"></i>Single URL
+                    </button>
+                    <button id="batchModeBtn" onclick="setMode('batch')" class="px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white">
+                        <i class="fa-solid fa-layer-group mr-1.5"></i>Batch
+                    </button>
+                </div>
+
+                <!-- Theme Toggle -->
+                <button onclick="toggleDarkMode()" class="w-9 h-9 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center justify-center transition-colors" title="Toggle theme">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col gap-8">
+        
+        <!-- Main Interactive Card -->
+        <section class="bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 sm:p-7 shadow-xl shadow-slate-200/50 dark:shadow-none transition-all-custom">
+            
+            <!-- Controls Bar Above Input -->
+            <div class="flex flex-wrap items-center justify-between gap-4 mb-4">
+                <label for="urlInput" class="text-sm font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-paste text-brand-500"></i>
+                    <span id="inputLabel">Paste URL below:</span>
+                </label>
+                
+                <div class="flex items-center gap-4 text-xs">
+                    <!-- Auto-copy Toggle -->
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" id="autoCopyToggle" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 border-slate-300 dark:border-slate-600 dark:bg-slate-700">
+                        <span class="text-slate-600 dark:text-slate-300">Auto-copy cleaned URL</span>
+                    </label>
+
+                    <button onclick="clearAll()" class="text-slate-400 hover:text-rose-500 transition-colors flex items-center gap-1 font-medium">
+                        <i class="fa-solid fa-trash-can"></i> Clear
+                    </button>
+                </div>
+            </div>
+
+            <!-- Single Input View -->
+            <div id="singleInputContainer" class="relative">
+                <div class="relative flex items-center">
+                    <input type="text" id="urlInput" placeholder="Paste link here... (e.g. https://example.com/article=chatgpt.com)"
+                        class="w-full pl-4 pr-28 py-3.5 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm sm:text-base focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono"
+                        oninput="processInput()" onpaste="handlePaste(event)">
+                    
+                    <button onclick="pasteFromClipboard()" class="absolute right-2 px-3 py-1.5 text-xs font-semibold bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-200 rounded-lg transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-clipboard"></i> Paste
+                    </button>
+                </div>
+            </div>
+
+            <!-- Batch Input View (Hidden by default) -->
+            <div id="batchInputContainer" class="hidden">
+                <textarea id="batchUrlInput" rows="5" placeholder="Paste multiple URLs (one per line)...&#10;https://site.com/page=chatgpt.com&#10;https://domain.org/article?ref=chatgpt.com"
+                    class="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all font-mono"
+                    oninput="processBatchInput()"></textarea>
+            </div>
+
+            <!-- Output / Results Section for Single Mode -->
+            <div id="singleResultContainer" class="mt-6 space-y-4 hidden">
+                <div class="p-4 rounded-xl bg-brand-50/50 dark:bg-brand-500/10 border border-brand-200 dark:border-brand-500/30">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-bold uppercase tracking-wider text-brand-700 dark:text-brand-400 flex items-center gap-1.5">
+                            <i class="fa-solid fa-circle-check"></i> Cleaned Authentic URL
+                        </span>
+                        <span id="removedBadge" class="text-xs px-2 py-0.5 rounded-full bg-rose-100 dark:bg-rose-900/40 text-rose-600 dark:text-rose-400 font-mono hidden">
+                            Stripped Suffix
+                        </span>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                        <a id="cleanResultUrl" href="#" target="_blank" class="font-mono text-sm font-semibold text-slate-900 dark:text-white hover:underline break-all">
+                            <!-- Cleaned URL injected here -->
+                        </a>
+                        
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button id="copyBtn" onclick="copyResult()" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold text-xs shadow-md shadow-brand-600/20 transition-all flex items-center gap-1.5">
+                                <i class="fa-solid fa-copy"></i> Copy Link
+                            </button>
+                            <a id="openLinkBtn" href="#" target="_blank" class="p-2 text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors" title="Open Link">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Before & After Diff Visualizer -->
+                <div id="diffContainer" class="border border-slate-200 dark:border-slate-700/60 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-900/40 text-xs font-mono">
+                    <div class="text-slate-400 dark:text-slate-500 font-sans font-semibold mb-2 uppercase text-[10px] tracking-wider">Breakdown Analysis</div>
+                    <div class="space-y-1.5">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                            <span class="w-16 text-slate-400 font-sans font-medium">Original:</span>
+                            <span id="diffOriginal" class="break-all text-slate-600 dark:text-slate-400"></span>
+                        </div>
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3">
+                            <span class="w-16 text-slate-400 font-sans font-medium">Removed:</span>
+                            <span id="diffRemoved" class="break-all text-rose-600 dark:text-rose-400 font-semibold bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 rounded border border-rose-200 dark:border-rose-900/50"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Output / Results Section for Batch Mode -->
+            <div id="batchResultContainer" class="mt-6 hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+                        Cleaned Links (<span id="batchCount">0</span>)
+                    </span>
+                    <button onclick="copyBatchResults()" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-lg font-semibold text-xs transition-colors flex items-center gap-1.5">
+                        <i class="fa-solid fa-copy"></i> Copy All Cleaned Links
+                    </button>
+                </div>
+                <textarea id="batchResultOutput" readonly rows="5" class="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-sm font-mono text-slate-800 dark:text-slate-200 focus:outline-none"></textarea>
+            </div>
+        </section>
+
+        <!-- Supported Strip Patterns Bar -->
+        <section class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div class="bg-white dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-start gap-3">
+                <div class="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <i class="fa-solid fa-bolt text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-slate-200">Suffix Removal</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Strips `=chatgpt.com`, `=claude.ai`, `=perplexity.ai` trailing params added during copy-pasting.</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-start gap-3">
+                <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 mt-0.5">
+                    <i class="fa-solid fa-filter text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-slate-200">UTM & Tracker Cleaner</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Automatically strips marketing trackers (`utm_source`, `ref`, `fbclid`, etc.) for clean links.</p>
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700/60 flex items-start gap-3">
+                <div class="p-2 rounded-lg bg-purple-100 dark:bg-purple-950/50 text-purple-600 dark:text-purple-400 mt-0.5">
+                    <i class="fa-solid fa-shield-halved text-sm"></i>
+                </div>
+                <div>
+                    <h3 class="text-xs font-bold text-slate-900 dark:text-slate-200">100% Client Side</h3>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Your links are cleaned locally inside your browser. No data is sent to any server.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- History Section -->
+        <section class="bg-white dark:bg-slate-800/80 backdrop-blur-sm border border-slate-200 dark:border-slate-700/80 rounded-2xl p-5 sm:p-7 shadow-xl shadow-slate-200/50 dark:shadow-none">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left text-brand-500"></i>
+                    Session History
+                </h2>
+                <button onclick="clearHistory()" id="clearHistoryBtn" class="text-xs text-slate-400 hover:text-rose-500 transition-colors hidden">
+                    Clear History
+                </button>
+            </div>
+
+            <div id="emptyHistory" class="text-center py-8 text-slate-400 dark:text-slate-500 text-xs">
+                <i class="fa-solid fa-link-slash text-2xl mb-2 opacity-50"></i>
+                <p>No cleaned URLs yet in this session.</p>
+            </div>
+
+            <ul id="historyList" class="space-y-2.5 max-h-60 overflow-y-auto pr-1">
+                <!-- History items appended here via JS -->
+            </ul>
+        </section>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toast" class="fixed bottom-6 right-6 translate-y-10 opacity-0 pointer-events-none transition-all duration-300 z-50 flex items-center gap-2 px-4 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs font-semibold rounded-xl shadow-2xl border border-slate-700 dark:border-slate-200">
+        <i class="fa-solid fa-circle-check text-brand-500 text-base"></i>
+        <span id="toastMsg">Cleaned URL copied to clipboard!</span>
+    </div>
+
+    <script>
+        let currentMode = 'single';
+        let cleanedHistory = [];
+        let currentCleanedUrl = '';
+
+        // --- Core Cleaning Logic ---
+        function sanitizeURL(rawInput) {
+            if (!rawInput || !rawInput.trim()) return { cleanUrl: '', removed: '', wasCleaned: false };
+            
+            let url = rawInput.trim();
+            let original = url;
+            let removedParts = [];
+
+            // 1. Regex to target trailing =chatgpt.com, =claude.ai, =perplexity.ai or similar suffixes directly appended at the end
+            const chatGptSuffixRegex = /(=chatgpt\.com|=claude\.ai|=perplexity\.ai|=gemini\.google\.com)$/i;
+            if (chatGptSuffixRegex.test(url)) {
+                const match = url.match(chatGptSuffixRegex);
+                if (match) {
+                    removedParts.push(match[0]);
+                    url = url.replace(chatGptSuffixRegex, '');
+                }
+            }
+
+            // Also check for embedded suffixes like url.com/path=chatgpt.com?query=1
+            const embeddedSuffixRegex = /(=chatgpt\.com|=claude\.ai)/gi;
+            if (embeddedSuffixRegex.test(url)) {
+                url = url.replace(embeddedSuffixRegex, (match) => {
+                    removedParts.push(match);
+                    return '';
+                });
+            }
+
+            // 2. Clean standard tracking query params if URL is valid
+            try {
+                // Prepend protocol if missing for URL parsing, but keep user format if simple
+                let parseableUrl = url.match(/^https?:\/\//i) ? url : `https://${url}`;
+                let parsed = new URL(parseableUrl);
+                
+                // Trackers to strip
+                const trackingParams = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'fbclid', 'gclid', 'ref_src'];
+                let hasRemovedQuery = false;
+
+                trackingParams.forEach(param => {
+                    if (parsed.searchParams.has(param)) {
+                        removedParts.push(`${param}=${parsed.searchParams.get(param)}`);
+                        parsed.searchParams.delete(param);
+                        hasRemovedQuery = true;
+                    }
+                });
+
+                if (hasRemovedQuery) {
+                    // Reconstruct back while respecting user's original protocol inclusion
+                    url = rawInput.startsWith('http') ? parsed.toString() : parsed.toString().replace(/^https?:\/\//, '');
+                }
+            } catch (e) {
+                // If it's not a standard URL, fallback to string sanitization
+            }
+
+            const wasCleaned = original !== url;
+            return {
+                cleanUrl: url,
+                removed: removedParts.join(', '),
+                wasCleaned: wasCleaned,
+                original: original
+            };
+        }
+
+        // --- UI Handlers & Real-time Input ---
+        function processInput() {
+            const input = document.getElementById('urlInput').value;
+            const resultContainer = document.getElementById('singleResultContainer');
+            
+            if (!input.trim()) {
+                resultContainer.classList.add('hidden');
+                return;
+            }
+
+            const { cleanUrl, removed, wasCleaned, original } = sanitizeURL(input);
+            currentCleanedUrl = cleanUrl;
+
+            // Render Output
+            document.getElementById('cleanResultUrl').textContent = cleanUrl;
+            document.getElementById('cleanResultUrl').href = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
+            document.getElementById('openLinkBtn').href = cleanUrl.startsWith('http') ? cleanUrl : `https://${cleanUrl}`;
+
+            // Diff Section
+            const diffContainer = document.getElementById('diffContainer');
+            const removedBadge = document.getElementById('removedBadge');
+
+            if (wasCleaned) {
+                removedBadge.classList.remove('hidden');
+                diffContainer.classList.remove('hidden');
+                document.getElementById('diffOriginal').textContent = original;
+                document.getElementById('diffRemoved').textContent = removed || 'Trailing suffix';
+            } else {
+                removedBadge.classList.add('hidden');
+                diffContainer.classList.add('hidden');
+            }
+
+            resultContainer.classList.remove('hidden');
+
+            // Save to history & auto copy if toggled
+            addToHistory(original, cleanUrl);
+        }
+
+        function handlePaste(e) {
+            // Short delay to allow value to populate or process directly
+            setTimeout(() => {
+                processInput();
+                const autoCopy = document.getElementById('autoCopyToggle').checked;
+                if (autoCopy && currentCleanedUrl) {
+                    copyToClipboard(currentCleanedUrl, 'Cleaned URL automatically copied!');
+                }
+            }, 50);
+        }
+
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                if (text) {
+                    document.getElementById('urlInput').value = text;
+                    processInput();
+                    const autoCopy = document.getElementById('autoCopyToggle').checked;
+                    if (autoCopy && currentCleanedUrl) {
+                        copyToClipboard(currentCleanedUrl, 'Pasted & Cleaned URL copied!');
+                    }
+                }
+            } catch (err) {
+                showToast('Unable to read clipboard. Please paste manually.');
+            }
+        }
+
+        function processBatchInput() {
+            const rawText = document.getElementById('batchUrlInput').value;
+            const lines = rawText.split('\n');
+            const cleanedLines = [];
+            let count = 0;
+
+            lines.forEach(line => {
+                if (line.trim()) {
+                    const { cleanUrl } = sanitizeURL(line);
+                    cleanedLines.push(cleanUrl);
+                    count++;
+                }
+            });
+
+            const batchResultContainer = document.getElementById('batchResultContainer');
+            if (cleanedLines.length > 0) {
+                batchResultContainer.classList.remove('hidden');
+                document.getElementById('batchResultOutput').value = cleanedLines.join('\n');
+                document.getElementById('batchCount').textContent = count;
+            } else {
+                batchResultContainer.classList.add('hidden');
+            }
+        }
+
+        function copyResult() {
+            if (currentCleanedUrl) {
+                copyToClipboard(currentCleanedUrl, 'Copied cleaned URL to clipboard!');
+            }
+        }
+
+        function copyBatchResults() {
+            const output = document.getElementById('batchResultOutput').value;
+            if (output) {
+                copyToClipboard(output, 'Copied all cleaned URLs!');
+            }
+        }
+
+        function copyToClipboard(text, msg = 'Copied to clipboard!') {
+            // iFrame compatible clipboard copy fallback
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showToast(msg);
+                }).catch(() => fallbackCopy(text, msg));
+            } else {
+                fallbackCopy(text, msg);
+            }
+        }
+
+        function fallbackCopy(text, msg) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            document.body.appendChild(textArea);
+            textArea.select();
+            try {
+                document.execCommand('copy');
+                showToast(msg);
+            } catch (err) {
+                showToast('Failed to copy to clipboard');
+            }
+            document.body.removeChild(textArea);
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').textContent = message;
+            toast.classList.remove('translate-y-10', 'opacity-0', 'pointer-events-none');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-10', 'opacity-0', 'pointer-events-none');
+            }, 2500);
+        }
+
+        // --- Session History ---
+        function addToHistory(original, cleaned) {
+            // Avoid duplicate recent entries
+            if (cleanedHistory.length > 0 && cleanedHistory[0].cleaned === cleaned) return;
+
+            cleanedHistory.unshift({ original, cleaned, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) });
+            if (cleanedHistory.length > 15) cleanedHistory.pop();
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const list = document.getElementById('historyList');
+            const emptyState = document.getElementById('emptyHistory');
+            const clearBtn = document.getElementById('clearHistoryBtn');
+
+            if (cleanedHistory.length === 0) {
+                emptyState.classList.remove('hidden');
+                clearBtn.classList.add('hidden');
+                list.innerHTML = '';
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            clearBtn.classList.remove('hidden');
+
+            list.innerHTML = cleanedHistory.map((item, index) => `
+                <li class="p-3 bg-slate-50 dark:bg-slate-900/60 rounded-xl border border-slate-200/60 dark:border-slate-700/50 flex items-center justify-between gap-3 text-xs">
+                    <div class="overflow-hidden">
+                        <div class="font-mono font-semibold text-slate-800 dark:text-slate-200 truncate">${escapeHtml(item.cleaned)}</div>
+                        <div class="text-slate-400 dark:text-slate-500 font-mono text-[11px] truncate">Was: ${escapeHtml(item.original)}</div>
+                    </div>
+                    <button onclick="copyToClipboard('${escapeJs(item.cleaned)}', 'Copied link from history!')" class="px-2.5 py-1.5 bg-slate-200 dark:bg-slate-800 hover:bg-brand-500 hover:text-white dark:hover:bg-brand-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors shrink-0 font-medium">
+                        Copy
+                    </button>
+                </li>
+            `).join('');
+        }
+
+        function clearHistory() {
+            cleanedHistory = [];
+            renderHistory();
+            showToast('History cleared');
+        }
+
+        function clearAll() {
+            document.getElementById('urlInput').value = '';
+            document.getElementById('batchUrlInput').value = '';
+            document.getElementById('singleResultContainer').classList.add('hidden');
+            document.getElementById('batchResultContainer').classList.add('hidden');
+            currentCleanedUrl = '';
+        }
+
+        // --- Mode & Dark Theme Management ---
+        function setMode(mode) {
+            currentMode = mode;
+            const singleBtn = document.getElementById('singleModeBtn');
+            const batchBtn = document.getElementById('batchModeBtn');
+            const singleContainer = document.getElementById('singleInputContainer');
+            const batchContainer = document.getElementById('batchInputContainer');
+            const singleResult = document.getElementById('singleResultContainer');
+            const batchResult = document.getElementById('batchResultContainer');
+
+            if (mode === 'single') {
+                singleBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
+                batchBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                singleContainer.classList.remove('hidden');
+                batchContainer.classList.add('hidden');
+                batchResult.classList.add('hidden');
+                if (document.getElementById('urlInput').value) singleResult.classList.remove('hidden');
+            } else {
+                batchBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm";
+                singleBtn.className = "px-3 py-1.5 text-xs font-medium rounded-lg transition-all-custom text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white";
+                batchContainer.classList.remove('hidden');
+                singleContainer.classList.add('hidden');
+                singleResult.classList.add('hidden');
+                if (document.getElementById('batchUrlInput').value) batchResult.classList.remove('hidden');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+        }
+
+        function escapeHtml(str) {
+            return str.replace(/[&<>"']/g, function(m) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' }[m];
+            });
+        }
+
+        function escapeJs(str) {
+            return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+        }
+
+        // Initialize on load
+        window.onload = function() {
+            document.getElementById('urlInput').focus();
+        };
+    </script>
+</body>
+</html>
