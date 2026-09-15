@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slide Spotlight & Focus Highlight Tool</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+    
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(71, 85, 105, 1);
+    }
+
+    /* Checkerboard pattern for background canvas */
+    .bg-checker {
+      background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
+                        linear-gradient(45deg, transparent 75%, #1e293b 75%), 
+                        linear-gradient(-45deg, transparent 75%, #1e293b 75%);
+      background-size: 20px 20px;
+      background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+    }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-hidden select-none bg-slate-950 text-slate-100">
+
+  <!-- Header Navigation -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 z-20">
+    <div class="flex items-center space-x-3">
+      <div class="p-2 bg-amber-500/20 text-amber-400 rounded-xl border border-amber-500/30 shadow-sm">
+        <i data-lucide="sun" class="w-6 h-6"></i>
+      </div>
+      <div>
+        <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
+          SlideSpotlight <span class="text-[10px] uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full font-semibold">Focus Studio</span>
+        </h1>
+        <p class="text-xs text-slate-400">Highlight key areas with background dimming, blur & grayscale</p>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex items-center space-x-3">
+      <label for="imageUpload" class="cursor-pointer bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2 border border-slate-700 shadow-sm">
+        <i data-lucide="upload" class="w-4 h-4 text-amber-400"></i>
+        <span>Upload Screenshot</span>
+        <input type="file" id="imageUpload" accept="image/*" class="hidden">
+      </label>
+
+      <button id="exportBtn" class="bg-amber-500 hover:bg-amber-400 active:bg-amber-600 text-slate-950 text-sm font-bold px-4 py-2 rounded-lg shadow-lg shadow-amber-500/20 transition flex items-center gap-2 border border-amber-400">
+        <i data-lucide="download" class="w-4 h-4"></i>
+        <span>Export PNG for Slides</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main App Workspace -->
+  <div class="flex-1 flex overflow-hidden">
+
+    <!-- Center Canvas Workspace -->
+    <main class="flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center relative overflow-hidden group">
+      
+      <!-- Grid Background -->
+      <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
+
+      <!-- Quick Canvas Floating Toolbar -->
+      <div class="absolute top-4 z-20 flex items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-800 p-1.5 rounded-xl shadow-xl">
+        <button id="addRectBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-amber-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="square" class="w-4 h-4"></i> + Rectangle Region
+        </button>
+        <button id="addCircleBtn" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-amber-400 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+          <i data-lucide="circle" class="w-4 h-4"></i> + Circle Spotlight
+        </button>
+        <div class="h-4 w-px bg-slate-800 mx-1"></div>
+        <button id="clearAllBtn" class="px-3 py-1.5 hover:bg-rose-500/20 text-slate-400 hover:text-rose-300 rounded-lg text-xs font-medium flex items-center gap-1 transition">
+          <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Clear Regions
+        </button>
+      </div>
+
+      <!-- Main Canvas Container -->
+      <div id="canvasWrapper" class="relative max-w-full max-h-full flex items-center justify-center rounded-xl shadow-2xl overflow-hidden border border-slate-800/80 bg-slate-900/60 bg-checker">
+        
+        <!-- Render Canvas -->
+        <canvas id="mainCanvas" class="block max-w-full max-h-[calc(100vh-140px)] object-contain cursor-default"></canvas>
+
+        <!-- Empty State Overlay -->
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-950/95 z-30">
+          <div class="p-4 bg-amber-500/10 rounded-2xl border border-amber-500/20 mb-4 text-amber-400 shadow-inner">
+            <i data-lucide="scan-face" class="w-12 h-12"></i>
+          </div>
+          <h3 class="text-xl font-bold text-white mb-2">Create Presentation Slide Spotlights</h3>
+          <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
+            Highlight key text or UI elements in your screenshot while desaturating, dimming, or blurring background areas for maximum audience focus.
+          </p>
+
+          <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
+            <label for="imageUpload2" class="cursor-pointer bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-sm px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-amber-500/20">
+              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Upload Screenshot
+              <input type="file" id="imageUpload2" accept="image/*" class="hidden">
+            </label>
+            <span class="text-xs text-slate-500">or</span>
+            <button onclick="loadSampleImage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
+              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Try Sample Quora Screenshot
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Canvas Instructions Hint -->
+      <div id="canvasHint" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur border border-slate-800 px-4 py-2 rounded-full text-xs text-slate-300 shadow-xl pointer-events-none flex items-center gap-2 opacity-0 transition-opacity duration-300">
+        <i data-lucide="move" class="w-3.5 h-3.5 text-amber-400"></i>
+        <span>Click to select region. Drag to move, or drag handles to resize.</span>
+      </div>
+    </main>
+
+    <!-- Right Controls Sidebar -->
+    <aside class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col h-full overflow-y-auto shrink-0 z-10">
+      
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+        <h2 class="font-bold text-slate-200 text-xs tracking-wider uppercase flex items-center gap-2">
+          <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i> Focus Controls
+        </h2>
+      </div>
+
+      <div class="p-5 space-y-6 flex-1">
+
+        <!-- PRESET FOCUS STYLES -->
+        <div class="space-y-2">
+          <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Quick Presets</label>
+          <div class="grid grid-cols-2 gap-2 text-xs">
+            <button onclick="applyPreset('dimmedGrey')" class="py-2 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 font-medium text-left flex items-center gap-2 transition">
+              <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span> Dimmed Grey
+            </button>
+            <button onclick="applyPreset('spotlightDark')" class="py-2 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 font-medium text-left flex items-center gap-2 transition">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span> Dark Spotlight
+            </button>
+            <button onclick="applyPreset('softBlur')" class="py-2 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 font-medium text-left flex items-center gap-2 transition">
+              <span class="w-2.5 h-2.5 rounded-full bg-sky-400"></span> Soft Blur Focus
+            </button>
+            <button onclick="applyPreset('sepiaWarm')" class="py-2 px-2.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 font-medium text-left flex items-center gap-2 transition">
+              <span class="w-2.5 h-2.5 rounded-full bg-amber-600"></span> Warm Tint
+            </button>
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- UNHIGHLIGHTED BACKGROUND EFFECTS -->
+        <div class="space-y-4">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center justify-between">
+            <span>Outside Area Effects</span>
+            <i data-lucide="eye-off" class="w-3.5 h-3.5 text-slate-500"></i>
+          </h3>
+
+          <!-- Grayscale / Desaturate -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Grayscale / Desaturate</span>
+              <span id="grayscaleVal" class="text-amber-400 font-semibold">100%</span>
+            </div>
+            <input type="range" id="grayscaleSlider" min="0" max="100" step="5" value="100" class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+          <!-- Dimming / Dark Overlay -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Dimming Darkness</span>
+              <span id="dimVal" class="text-amber-400 font-semibold">50%</span>
+            </div>
+            <input type="range" id="dimSlider" min="0" max="95" step="5" value="50" class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+          <!-- Gaussian Blur -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Background Blur</span>
+              <span id="blurVal" class="text-amber-400 font-semibold">0px</span>
+            </div>
+            <input type="range" id="blurSlider" min="0" max="20" step="1" value="0" class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+          <!-- Background Tint Color -->
+          <div class="space-y-1.5">
+            <span class="text-xs font-medium text-slate-300 block">Tint Color</span>
+            <div class="flex items-center gap-2">
+              <input type="color" id="tintColorPicker" value="#0f172a" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+              <div class="flex gap-1.5">
+                <button onclick="setTintColor('#000000')" class="w-5 h-5 rounded-full bg-black border border-slate-600" title="Pure Black"></button>
+                <button onclick="setTintColor('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600" title="Dark Slate"></button>
+                <button onclick="setTintColor('#1e1b4b')" class="w-5 h-5 rounded-full bg-indigo-950 border border-slate-600" title="Deep Indigo"></button>
+                <button onclick="setTintColor('#2d0607')" class="w-5 h-5 rounded-full bg-rose-950 border border-slate-600" title="Deep Rose"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- HIGHLIGHT REGION STYLING (For Selected Region) -->
+        <div class="space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase text-amber-400 tracking-wider flex items-center gap-1.5">
+              <i data-lucide="focus" class="w-3.5 h-3.5"></i> Selected Region Style
+            </h3>
+            <button id="deleteRegionBtn" class="text-[11px] text-rose-400 hover:text-rose-300 flex items-center gap-1 font-medium transition">
+              <i data-lucide="trash" class="w-3 h-3"></i> Delete
+            </button>
+          </div>
+
+          <!-- Shape Type Toggle -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-slate-300">Shape Format</label>
+            <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
+              <button id="shapeRectBtn" class="py-1.5 bg-amber-500 text-slate-950 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="square" class="w-3.5 h-3.5"></i> Rectangle
+              </button>
+              <button id="shapeCircleBtn" class="py-1.5 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="circle" class="w-3.5 h-3.5"></i> Oval / Circle
+              </button>
+            </div>
+          </div>
+
+          <!-- Highlight Border -->
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-slate-300 block">Border Color</span>
+              <input type="color" id="borderColorPicker" value="#f59e0b" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+            </div>
+            <div class="space-y-1.5">
+              <span class="text-xs font-medium text-slate-300 block">Border Width</span>
+              <input type="range" id="borderWidthSlider" min="0" max="10" step="1" value="3" class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+          </div>
+
+          <!-- Border Glow / Shadow Effect -->
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Spotlight Glow Intensity</span>
+              <span id="glowVal" class="text-amber-400 font-semibold">15px</span>
+            </div>
+            <input type="range" id="glowSlider" min="0" max="40" step="2" value="15" class="w-full accent-amber-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+
+          <!-- Region Label / Badge -->
+          <div class="space-y-1.5">
+            <label class="text-xs font-medium text-slate-300">Region Label Badge (Optional)</label>
+            <input type="text" id="labelInput" placeholder="e.g., Step 1, Note, Key Point..." class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-100 focus:outline-none focus:border-amber-500 transition">
+          </div>
+        </div>
+
+      </div>
+
+      <div class="p-4 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-500 text-center">
+        High-Resolution Vector Spotlight Rendering
+      </div>
+    </aside>
+
+  </div>
+
+  <script>
+    lucide.createIcons();
+
+    // DOM Elements
+    const canvas = document.getElementById('mainCanvas');
+    const ctx = canvas.getContext('2d');
+    const imageUpload = document.getElementById('imageUpload');
+    const imageUpload2 = document.getElementById('imageUpload2');
+    const exportBtn = document.getElementById('exportBtn');
+    const emptyState = document.getElementById('emptyState');
+    const canvasHint = document.getElementById('canvasHint');
+
+    const addRectBtn = document.getElementById('addRectBtn');
+    const addCircleBtn = document.getElementById('addCircleBtn');
+    const clearAllBtn = document.getElementById('clearAllBtn');
+    const deleteRegionBtn = document.getElementById('deleteRegionBtn');
+
+    // Controls
+    const grayscaleSlider = document.getElementById('grayscaleSlider');
+    const grayscaleVal = document.getElementById('grayscaleVal');
+    const dimSlider = document.getElementById('dimSlider');
+    const dimVal = document.getElementById('dimVal');
+    const blurSlider = document.getElementById('blurSlider');
+    const blurVal = document.getElementById('blurVal');
+    const tintColorPicker = document.getElementById('tintColorPicker');
+
+    const shapeRectBtn = document.getElementById('shapeRectBtn');
+    const shapeCircleBtn = document.getElementById('shapeCircleBtn');
+    const borderColorPicker = document.getElementById('borderColorPicker');
+    const borderWidthSlider = document.getElementById('borderWidthSlider');
+    const glowSlider = document.getElementById('glowSlider');
+    const glowVal = document.getElementById('glowVal');
+    const labelInput = document.getElementById('labelInput');
+
+    // App State
+    let loadedImage = null;
+    let selectedRegionIndex = 0;
+
+    let globalStyle = {
+      grayscale: 100, // 0 to 100%
+      dimOpacity: 50,  // 0 to 95%
+      blur: 0,        // 0 to 20px
+      tintColor: "#0f172a"
+    };
+
+    let regions = [
+      {
+        type: 'rect', // 'rect' or 'circle'
+        x: 0.18,      // percentage 0..1
+        y: 0.22,
+        w: 0.60,
+        h: 0.16,
+        borderColor: '#f59e0b',
+        borderWidth: 3,
+        glow: 15,
+        label: 'Key Highlight'
+      }
+    ];
+
+    // Drag Interaction State
+    let activeDrag = null; // 'move' | 'resize'
+    let dragStartPos = { x: 0, y: 0 };
+    let initialRegionBounds = null;
+
+    // --- Image Upload Handling ---
+
+    function handleFile(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          loadedImage = img;
+          emptyState.style.display = 'none';
+          canvasHint.classList.remove('opacity-0');
+          resizeCanvas();
+          updateControlPanelUI();
+          render();
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
+    imageUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
+    imageUpload2.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+    function loadSampleImage() {
+      // Create sample Quora screenshot dynamically
+      const tempCanvas = document.createElement('canvas');
+      tempCanvas.width = 1200;
+      tempCanvas.height = 700;
+      const tCtx = tempCanvas.getContext('2d');
+
+      tCtx.fillStyle = "#1e293b";
+      tCtx.fillRect(0, 0, 1200, 700);
+
+      // Top Browser Bar
+      tCtx.fillStyle = "#0f172a";
+      tCtx.fillRect(0, 0, 1200, 48);
+      tCtx.fillStyle = "#ef4444"; tCtx.beginPath(); tCtx.arc(24, 24, 6, 0, Math.PI*2); tCtx.fill();
+      tCtx.fillStyle = "#f59e0b"; tCtx.beginPath(); tCtx.arc(44, 24, 6, 0, Math.PI*2); tCtx.fill();
+      tCtx.fillStyle = "#10b981"; tCtx.beginPath(); tCtx.arc(64, 24, 6, 0, Math.PI*2); tCtx.fill();
+
+      // URL bar
+      tCtx.fillStyle = "#334155";
+      tCtx.beginPath(); tCtx.roundRect(100, 10, 600, 28, 6); tCtx.fill();
+      tCtx.fillStyle = "#94a3b8"; tCtx.font = "13px sans-serif";
+      tCtx.fillText("https://quora.com/what-is-a-chapter-book-dont-all-books-have-chapters", 115, 28);
+
+      // Main Quora Content
+      tCtx.fillStyle = "#020617";
+      tCtx.fillRect(0, 48, 1200, 652);
+
+      tCtx.fillStyle = "#f8fafc";
+      tCtx.font = "bold 26px sans-serif";
+      tCtx.fillText("What is a chapter book? Don't all books have chapters?", 60, 110);
+
+      tCtx.fillStyle = "#94a3b8";
+      tCtx.font = "14px sans-serif";
+      tCtx.fillText("Lawrence Watt-Evans • 35 years of professional writing", 60, 145);
+
+      // Target Highlighted Excerpt Section
+      tCtx.fillStyle = "#fef08a";
+      tCtx.font = "16px/1.6 sans-serif";
+      tCtx.fillText("A 'chapter book' means a book aimed at young readers — older than the kids who read", 60, 190);
+      tCtx.fillText("picture books, younger than the 'young adult' audience — that's long enough to be divided", 60, 215);
+      tCtx.fillText("into chapters, and is not heavily illustrated.", 60, 240);
+
+      tCtx.fillStyle = "#cbd5e1";
+      tCtx.font = "15px/1.6 sans-serif";
+      tCtx.fillText("Yes, it's a stupid name. I don't know how it originated; I found it confusing when I first", 60, 280);
+      tCtx.fillText("encountered it, too.", 60, 305);
+
+      tCtx.fillText("And no, not all books have chapters. Most do, but not all. Fantasy humor writer Terry", 60, 345);
+      tCtx.fillText("Pratchett only used chapters in maybe a quarter of his books. Other writers have also", 60, 370);
+      tCtx.fillText("written books with no chapters, though it's unusual.", 60, 395);
+
+      // Sidebar box
+      tCtx.fillStyle = "#0f172a";
+      tCtx.strokeStyle = "#1e293b";
+      tCtx.lineWidth = 2;
+      tCtx.beginPath(); tCtx.roundRect(780, 90, 380, 500, 12); tCtx.fill(); tCtx.stroke();
+      tCtx.fillStyle = "#6366f1"; tCtx.font = "bold 16px sans-serif";
+      tCtx.fillText("Related Questions", 800, 130);
+
+      const sampleImg = new Image();
+      sampleImg.onload = () => {
+        loadedImage = sampleImg;
+        emptyState.style.display = 'none';
+        canvasHint.classList.remove('opacity-0');
+        resizeCanvas();
+        updateControlPanelUI();
+        render();
+      };
+      sampleImg.src = tempCanvas.toDataURL();
+    }
+
+    function resizeCanvas() {
+      if (!loadedImage) return;
+      canvas.width = loadedImage.width;
+      canvas.height = loadedImage.height;
+    }
+
+    window.addEventListener('resize', () => {
+      if (loadedImage) render();
+    });
+
+    // --- STREAMING_CHUNK:Rendering Canvas Spotlight Mask & Regions... ---
+
+    function render() {
+      if (!loadedImage) return;
+
+      const W = canvas.width;
+      const H = canvas.height;
+
+      ctx.clearRect(0, 0, W, H);
+
+      // 1. Draw Processed Background Layer (Grayscale / Dim / Blur)
+      // Offscreen canvas for background filter effects
+      const bgCanvas = document.createElement('canvas');
+      bgCanvas.width = W;
+      bgCanvas.height = H;
+      const bgCtx = bgCanvas.getContext('2d');
+
+      // Build CSS Filter String
+      let filterStr = '';
+      if (globalStyle.grayscale > 0) filterStr += `grayscale(${globalStyle.grayscale}%) `;
+      if (globalStyle.blur > 0) filterStr += `blur(${globalStyle.blur * (W / 1000)}px) `;
+
+      bgCtx.save();
+      if (filterStr.trim()) bgCtx.filter = filterStr.trim();
+      bgCtx.drawImage(loadedImage, 0, 0, W, H);
+      bgCtx.restore();
+
+      // Apply Dim Overlay / Tint on top of background canvas
+      if (globalStyle.dimOpacity > 0) {
+        bgCtx.save();
+        bgCtx.fillStyle = globalStyle.tintColor;
+        bgCtx.globalAlpha = globalStyle.dimOpacity / 100;
+        bgCtx.fillRect(0, 0, W, H);
+        bgCtx.restore();
+      }
+
+      // Draw processed dimmed background onto main canvas
+      ctx.drawImage(bgCanvas, 0, 0, W, H);
+
+      // 2. Cut Out Highlight Holes (Reveal Original Crisp Unaltered Image inside regions)
+      ctx.save();
+      ctx.beginPath();
+      regions.forEach((r) => {
+        const rx = r.x * W;
+        const ry = r.y * H;
+        const rw = r.w * W;
+        const rh = r.h * H;
+
+        if (r.type === 'circle') {
+          ctx.ellipse(rx + rw/2, ry + rh/2, rw/2, rh/2, 0, 0, Math.PI * 2);
+        } else {
+          ctx.roundRect(rx, ry, rw, rh, 8 * (W / 1000));
+        }
+      });
+      ctx.clip();
+
+      // Draw original sharp image inside clip path
+      ctx.drawImage(loadedImage, 0, 0, W, H);
+      ctx.restore();
+
+      // 3. Draw Borders, Glows, and Label Badges for Highlight Regions
+      regions.forEach((r, idx) => {
+        const rx = r.x * W;
+        const ry = r.y * H;
+        const rw = r.w * W;
+        const rh = r.h * H;
+        const isSelected = (idx === selectedRegionIndex);
+
+        ctx.save();
+
+        // Glow Effect
+        if (r.glow > 0) {
+          ctx.shadowColor = r.borderColor;
+          ctx.shadowBlur = r.glow * (W / 1000);
+        }
+
+        // Draw Border
+        ctx.strokeStyle = r.borderColor;
+        ctx.lineWidth = r.borderWidth * (W / 1000);
+
+        ctx.beginPath();
+        if (r.type === 'circle') {
+          ctx.ellipse(rx + rw/2, ry + rh/2, rw/2, rh/2, 0, 0, Math.PI * 2);
+        } else {
+          ctx.roundRect(rx, ry, rw, rh, 8 * (W / 1000));
+        }
+        if (r.borderWidth > 0) ctx.stroke();
+
+        ctx.restore();
+
+        // Selection Border outline if selected
+        if (isSelected) {
+          ctx.save();
+          ctx.strokeStyle = "#38bdf8";
+          ctx.lineWidth = 2 * (W / 1000);
+          ctx.setLineDash([6, 4]);
+          ctx.strokeRect(rx - 4, ry - 4, rw + 8, rh + 8);
+
+          // Corner Handle
+          ctx.setLineDash([]);
+          ctx.fillStyle = "#38bdf8";
+          const hSize = 10 * (W / 1000);
+          ctx.fillRect(rx + rw - hSize/2, ry + rh - hSize/2, hSize, hSize);
+          ctx.restore();
+        }
+
+        // Render Badge Label
+        if (r.label && r.label.trim() !== '') {
+          ctx.save();
+          const fontSize = Math.max(12, 14 * (W / 1000));
+          ctx.font = `bold ${fontSize}px sans-serif`;
+          const textMetrics = ctx.measureText(r.label);
+          const padX = 10 * (W / 1000);
+          const padY = 5 * (W / 1000);
+          const badgeW = textMetrics.width + padX * 2;
+          const badgeH = fontSize + padY * 2;
+
+          const badgeX = rx;
+          const badgeY = ry - badgeH - 6;
+
+          // Badge Background
+          ctx.fillStyle = r.borderColor;
+          ctx.beginPath();
+          ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 6);
+          ctx.fill();
+
+          // Badge Text
+          ctx.fillStyle = "#000000";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "top";
+          ctx.fillText(r.label, badgeX + padX, badgeY + padY);
+          ctx.restore();
+        }
+      });
+    }
+
+    // --- STREAMING_CHUNK:Adding Interactive Mouse & Touch Drag Handlers... ---
+
+    function getCanvasCoords(e) {
+      const rect = canvas.getBoundingClientRect();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+      return {
+        x: (clientX - rect.left) * (canvas.width / rect.width),
+        y: (clientY - rect.top) * (canvas.height / rect.height),
+        relX: (clientX - rect.left) / rect.width,
+        relY: (clientY - rect.top) / rect.height
+      };
+    }
+
+    canvas.addEventListener('mousedown', (e) => {
+      if (!loadedImage || regions.length === 0) return;
+      const pos = getCanvasCoords(e);
+      const W = canvas.width;
+      const H = canvas.height;
+
+      let hitFound = false;
+
+      // Check handle/region hits in reverse order (topmost first)
+      for (let i = regions.length - 1; i >= 0; i--) {
+        const r = regions[i];
+        const rx = r.x * W;
+        const ry = r.y * H;
+        const rw = r.w * W;
+        const rh = r.h * H;
+        const hSize = 16 * (W / 1000);
+
+        // Resize Handle Hit
+        if (Math.abs(pos.x - (rx + rw)) < hSize && Math.abs(pos.y - (ry + rh)) < hSize) {
+          selectedRegionIndex = i;
+          activeDrag = 'resize';
+          hitFound = true;
+          break;
+        }
+
+        // Inside Region Body Hit
+        if (pos.x >= rx && pos.x <= rx + rw && pos.y >= ry && pos.y <= ry + rh) {
+          selectedRegionIndex = i;
+          activeDrag = 'move';
+          hitFound = true;
+          break;
+        }
+      }
+
+      if (hitFound) {
+        dragStartPos = { x: pos.relX, y: pos.relY };
+        initialRegionBounds = { ...regions[selectedRegionIndex] };
+        updateControlPanelUI();
+        render();
+      }
+    });
+
+    window.addEventListener('mousemove', (e) => {
+      if (!activeDrag || !loadedImage || selectedRegionIndex < 0) return;
+      const pos = getCanvasCoords(e);
+      const dx = pos.relX - dragStartPos.x;
+      const dy = pos.relY - dragStartPos.y;
+
+      const r = regions[selectedRegionIndex];
+
+      if (activeDrag === 'move') {
+        r.x = Math.max(0, Math.min(1 - r.w, initialRegionBounds.x + dx));
+        r.y = Math.max(0, Math.min(1 - r.h, initialRegionBounds.y + dy));
+      } else if (activeDrag === 'resize') {
+        r.w = Math.max(0.05, initialRegionBounds.w + dx);
+        r.h = Math.max(0.05, initialRegionBounds.h + dy);
+      }
+
+      render();
+    });
+
+    window.addEventListener('mouseup', () => { activeDrag = null; });
+
+    // Touch Support
+    canvas.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
+      e.preventDefault();
+    }, { passive: false });
+
+    window.addEventListener('touchmove', (e) => {
+      if (activeDrag) {
+        const touch = e.touches[0];
+        window.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
+      }
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => { activeDrag = null; });
+
+    // --- STREAMING_CHUNK:Connecting Control Panel UI Syncing & Listeners... ---
+
+    function updateControlPanelUI() {
+      if (selectedRegionIndex < 0 || selectedRegionIndex >= regions.length) return;
+      const r = regions[selectedRegionIndex];
+
+      shapeRectBtn.className = r.type === 'rect' ? "py-1.5 bg-amber-500 text-slate-950 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition" : "py-1.5 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition";
+      shapeCircleBtn.className = r.type === 'circle' ? "py-1.5 bg-amber-500 text-slate-950 font-bold text-xs rounded-lg flex items-center justify-center gap-1.5 transition" : "py-1.5 text-slate-400 hover:text-slate-200 font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition";
+
+      borderColorPicker.value = r.borderColor;
+      borderWidthSlider.value = r.borderWidth;
+      glowSlider.value = r.glow;
+      glowVal.textContent = `${r.glow}px`;
+      labelInput.value = r.label || '';
+    }
+
+    // Add / Remove Region Buttons
+    addRectBtn.addEventListener('click', () => {
+      regions.push({
+        type: 'rect',
+        x: 0.25, y: 0.3, w: 0.5, h: 0.2,
+        borderColor: '#f59e0b', borderWidth: 3, glow: 15, label: `Highlight ${regions.length + 1}`
+      });
+      selectedRegionIndex = regions.length - 1;
+      updateControlPanelUI();
+      render();
+    });
+
+    addCircleBtn.addEventListener('click', () => {
+      regions.push({
+        type: 'circle',
+        x: 0.35, y: 0.3, w: 0.3, h: 0.3,
+        borderColor: '#38bdf8', borderWidth: 3, glow: 15, label: `Spotlight`
+      });
+      selectedRegionIndex = regions.length - 1;
+      updateControlPanelUI();
+      render();
+    });
+
+    clearAllBtn.addEventListener('click', () => {
+      regions = [];
+      selectedRegionIndex = -1;
+      render();
+    });
+
+    deleteRegionBtn.addEventListener('click', () => {
+      if (selectedRegionIndex >= 0 && selectedRegionIndex < regions.length) {
+        regions.splice(selectedRegionIndex, 1);
+        selectedRegionIndex = regions.length - 1;
+        updateControlPanelUI();
+        render();
+      }
+    });
+
+    // Background Sliders
+    grayscaleSlider.addEventListener('input', (e) => {
+      globalStyle.grayscale = parseInt(e.target.value, 10);
+      grayscaleVal.textContent = `${globalStyle.grayscale}%`;
+      render();
+    });
+
+    dimSlider.addEventListener('input', (e) => {
+      globalStyle.dimOpacity = parseInt(e.target.value, 10);
+      dimVal.textContent = `${globalStyle.dimOpacity}%`;
+      render();
+    });
+
+    blurSlider.addEventListener('input', (e) => {
+      globalStyle.blur = parseInt(e.target.value, 10);
+      blurVal.textContent = `${globalStyle.blur}px`;
+      render();
+    });
+
+    tintColorPicker.addEventListener('input', (e) => {
+      globalStyle.tintColor = e.target.value;
+      render();
+    });
+
+    function setTintColor(color) {
+      globalStyle.tintColor = color;
+      tintColorPicker.value = color;
+      render();
+    }
+
+    // Region Controls
+    shapeRectBtn.addEventListener('click', () => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].type = 'rect';
+        updateControlPanelUI();
+        render();
+      }
+    });
+
+    shapeCircleBtn.addEventListener('click', () => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].type = 'circle';
+        updateControlPanelUI();
+        render();
+      }
+    });
+
+    borderColorPicker.addEventListener('input', (e) => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].borderColor = e.target.value;
+        render();
+      }
+    });
+
+    borderWidthSlider.addEventListener('input', (e) => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].borderWidth = parseInt(e.target.value, 10);
+        render();
+      }
+    });
+
+    glowSlider.addEventListener('input', (e) => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].glow = parseInt(e.target.value, 10);
+        glowVal.textContent = `${regions[selectedRegionIndex].glow}px`;
+        render();
+      }
+    });
+
+    labelInput.addEventListener('input', (e) => {
+      if (selectedRegionIndex >= 0) {
+        regions[selectedRegionIndex].label = e.target.value;
+        render();
+      }
+    });
+
+    // Preset Applicator
+    function applyPreset(type) {
+      if (type === 'dimmedGrey') {
+        globalStyle = { grayscale: 100, dimOpacity: 45, blur: 0, tintColor: "#0f172a" };
+      } else if (type === 'spotlightDark') {
+        globalStyle = { grayscale: 0, dimOpacity: 75, blur: 2, tintColor: "#000000" };
+      } else if (type === 'softBlur') {
+        globalStyle = { grayscale: 30, dimOpacity: 25, blur: 8, tintColor: "#0f172a" };
+      } else if (type === 'sepiaWarm') {
+        globalStyle = { grayscale: 80, dimOpacity: 50, blur: 0, tintColor: "#2d1200" };
+      }
+
+      grayscaleSlider.value = globalStyle.grayscale; grayscaleVal.textContent = `${globalStyle.grayscale}%`;
+      dimSlider.value = globalStyle.dimOpacity; dimVal.textContent = `${globalStyle.dimOpacity}%`;
+      blurSlider.value = globalStyle.blur; blurVal.textContent = `${globalStyle.blur}px`;
+      tintColorPicker.value = globalStyle.tintColor;
+
+      render();
+    }
+
+    // Export PNG
+    exportBtn.addEventListener('click', () => {
+      if (!loadedImage) return;
+
+      // Unselect region handles before rendering export
+      const savedIndex = selectedRegionIndex;
+      selectedRegionIndex = -1;
+      render();
+
+      const dataUrl = canvas.toDataURL('image/png', 1.0);
+      const link = document.createElement('a');
+      link.download = `presentation-spotlight-${Date.now()}.png`;
+      link.href = dataUrl;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      selectedRegionIndex = savedIndex;
+      render();
+    });
+
+    // Initial load
+    window.addEventListener('load', () => {
+      loadSampleImage();
+    });
+  </script>
+</body>
+</html>
