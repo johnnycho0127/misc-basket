@@ -1,9 +1,10 @@
+STREAMING_CHUNK:Setting up document head, styles, and typography...
 <!DOCTYPE html>
 <html lang="en" class="h-full bg-slate-950 text-slate-100">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Presentation Callout & Focus Builder</title>
+  <title>Presentation Callout & Side Canvas Builder</title>
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -34,7 +35,7 @@
       background: rgba(71, 85, 105, 1);
     }
 
-    /* Checkerboard background for canvas preview */
+    /* Transparent background checkerboard pattern */
     .bg-checker {
       background-image: linear-gradient(45deg, #1e293b 25%, transparent 25%), 
                         linear-gradient(-45deg, #1e293b 25%, transparent 25%), 
@@ -47,21 +48,20 @@
 </head>
 <body class="h-full flex flex-col overflow-hidden select-none bg-slate-950 text-slate-100">
 
-  <!-- Header Navigation -->
   <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 px-6 py-3 flex items-center justify-between shrink-0 z-20">
     <div class="flex items-center space-x-3">
       <div class="p-2 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30">
-        <i data-lucide="focus" class="w-6 h-6"></i>
+        <i data-lucide="maximize-2" class="w-6 h-6"></i>
       </div>
       <div>
         <h1 class="font-bold text-lg leading-tight text-white flex items-center gap-2">
-          SlideCallout <span class="text-[10px] uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-semibold">Pro</span>
+          SlideCallout <span class="text-[10px] uppercase tracking-wider bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-2 py-0.5 rounded-full font-semibold">Side Canvas Pro</span>
         </h1>
-        <p class="text-xs text-slate-400">Create slide-ready magnified annotations & text callouts</p>
+        <p class="text-xs text-slate-400">Position magnified callouts on extra side margins outside your original image</p>
       </div>
     </div>
 
-    <!-- Right Header Actions -->
+    <!-- Top Action Buttons -->
     <div class="flex items-center space-x-3">
       <label for="imageUpload" class="cursor-pointer bg-slate-800 hover:bg-slate-700 active:bg-slate-800 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg transition flex items-center gap-2 border border-slate-700 shadow-sm">
         <i data-lucide="upload" class="w-4 h-4 text-indigo-400"></i>
@@ -78,63 +78,96 @@
 
   <div class="flex-1 flex overflow-hidden">
 
-    <!-- Left Interactive Canvas Workspace -->
+    <!-- Interactive Workspace (Canvas Container) -->
     <main class="flex-1 bg-slate-950 p-6 flex flex-col items-center justify-center relative overflow-hidden group">
       
       <!-- Subtle Grid Background -->
       <div class="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:28px_28px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_50%,#000_70%,transparent_100%)] opacity-30 pointer-events-none"></div>
 
-      <!-- Main Interactive Canvas Render Area -->
+      <!-- Main Render Canvas -->
       <div id="canvasWrapper" class="relative max-w-full max-h-full flex items-center justify-center rounded-xl shadow-2xl overflow-hidden border border-slate-800/80 bg-slate-900/60 bg-checker">
         
-        <!-- Render Canvas (Combines image + source highlight + callout line + callout box) -->
         <canvas id="mainCanvas" class="block max-w-full max-h-[calc(100vh-140px)] object-contain cursor-default"></canvas>
 
         <!-- Empty State Overlay -->
-        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-950/95 z-30">
+        <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center p-8 text-center bg-slate-950/95 z-30 hidden">
           <div class="p-4 bg-indigo-500/10 rounded-2xl border border-indigo-500/20 mb-4 text-indigo-400 shadow-inner">
             <i data-lucide="image-plus" class="w-12 h-12"></i>
           </div>
-          <h3 class="text-xl font-bold text-white mb-2">Upload Your Slide Screenshot</h3>
+          <h3 class="text-xl font-bold text-white mb-2">Upload Screenshot or Slide</h3>
           <p class="text-sm text-slate-400 max-w-md mb-6 leading-relaxed">
-            Highlight small or unreadable text on dense web screenshots, documents, or UI designs, and expand it into a clean presentation callout card.
+            Expand screenshot margins so magnified callouts sit neatly outside the original picture without covering key details.
           </p>
 
-          <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <label for="imageUpload2" class="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
-              <i data-lucide="upload-cloud" class="w-4 h-4"></i> Choose Image File
-              <input type="file" id="imageUpload2" accept="image/*" class="hidden">
-            </label>
-            <span class="text-xs text-slate-500">or try a sample:</span>
-            <button onclick="loadSampleImage()" class="bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium px-4 py-2.5 rounded-xl border border-slate-700 transition flex items-center gap-2">
-              <i data-lucide="sparkles" class="w-4 h-4 text-amber-400"></i> Sample Screenshot
-            </button>
-          </div>
+          <label for="imageUpload2" class="cursor-pointer bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm px-5 py-2.5 rounded-xl transition flex items-center gap-2 shadow-lg shadow-indigo-600/30">
+            <i data-lucide="upload-cloud" class="w-4 h-4"></i> Choose Image File
+            <input type="file" id="imageUpload2" accept="image/*" class="hidden">
+          </label>
         </div>
       </div>
 
-      <!-- Quick Canvas Instructions -->
-      <div id="canvasHint" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur border border-slate-800 px-4 py-2 rounded-full text-xs text-slate-300 shadow-xl pointer-events-none flex items-center gap-2 opacity-0 transition-opacity duration-300">
+      <!-- Canvas Hint Badge -->
+      <div id="canvasHint" class="absolute bottom-4 left-1/2 -translate-x-1/2 bg-slate-900/90 backdrop-blur border border-slate-800 px-4 py-2 rounded-full text-xs text-slate-300 shadow-xl pointer-events-none flex items-center gap-2 opacity-100 transition-opacity duration-300">
         <i data-lucide="move" class="w-3.5 h-3.5 text-indigo-400"></i>
-        <span>Drag the <b>Target Box</b> or <b>Callout Card</b> to position them. Resize from handles.</span>
+        <span>Drag <b>Target Box</b> on image or <b>Callout Card</b> in side margin. Drag corner handles to resize.</span>
       </div>
     </main>
 
-    <!-- Right Control Panel -->
     <aside class="w-80 bg-slate-900 border-l border-slate-800 flex flex-col h-full overflow-y-auto shrink-0 z-10">
       
-      <!-- Panel Header Tabs -->
+      <!-- Panel Header -->
       <div class="p-4 border-b border-slate-800 flex items-center justify-between">
         <h2 class="font-bold text-slate-200 text-xs tracking-wider uppercase flex items-center gap-2">
-          <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> Callout Customizer
+          <i data-lucide="sliders" class="w-4 h-4 text-indigo-400"></i> Slide & Callout Controls
         </h2>
       </div>
 
       <div class="p-5 space-y-6 flex-1">
 
-        <!-- Mode Toggle Switch (Cropped Image vs Editable Text) -->
-        <div class="space-y-2">
-          <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider">Callout Content Type</label>
+        <!-- 1. SIDE CANVAS LAYOUT & MARGINS -->
+        <div class="space-y-3">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider flex items-center gap-1.5">
+            <i data-lucide="layout" class="w-3.5 h-3.5 text-indigo-400"></i> Canvas & Extra Space
+          </h3>
+
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-300">Slide Aspect Ratio</label>
+            <select id="aspectRatioSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+              <option value="16:9" selected>16:9 Widescreen (Presentation Standard)</option>
+              <option value="4:3">4:3 Standard</option>
+              <option value="padding-wide">Wide Side Margins (+70% width)</option>
+              <option value="padding-all">Custom Padding All Around</option>
+            </select>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-300">Image Alignment</label>
+            <div class="grid grid-cols-3 gap-1 text-xs">
+              <button id="alignImgLeftBtn" class="py-1.5 bg-indigo-600 text-white rounded font-medium">Left</button>
+              <button id="alignImgCenterBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium">Center</button>
+              <button id="alignImgRightBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium">Right</button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-medium text-slate-300">Outer Canvas Color</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="canvasBgColorPicker" value="#0f172a" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
+              <div class="flex gap-1.5 flex-wrap">
+                <button onclick="setCanvasBg('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600" title="Dark Slate"></button>
+                <button onclick="setCanvasBg('#020617')" class="w-5 h-5 rounded-full bg-slate-950 border border-slate-600" title="Pure Black"></button>
+                <button onclick="setCanvasBg('#ffffff')" class="w-5 h-5 rounded-full bg-white border border-slate-600" title="Pure White"></button>
+                <button onclick="setCanvasBg('#f1f5f9')" class="w-5 h-5 rounded-full bg-slate-100 border border-slate-600" title="Light Gray"></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-800">
+
+        <!-- 2. CALLOUT TYPE SWITCH (Crop vs Text) -->
+        <div class="space-y-3">
+          <label class="text-xs font-semibold uppercase text-slate-400 tracking-wider block">Callout Content Mode</label>
           <div class="grid grid-cols-2 gap-2 bg-slate-950 p-1 rounded-xl border border-slate-800">
             <button id="modeCropBtn" class="py-2 px-3 bg-indigo-600 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm">
               <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> Zoom Crop
@@ -145,19 +178,31 @@
           </div>
         </div>
 
-        <!-- TEXT EDITING SECTION (Visible when in Text Mode) -->
+        <!-- CROP MAGNIFICATION CONTROLS -->
+        <div id="cropControlsSection" class="space-y-3 border-l-2 border-indigo-500 pl-3">
+          <h3 class="text-xs font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
+            <i data-lucide="search" class="w-3.5 h-3.5"></i> Magnification Scale
+          </h3>
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs">
+              <span class="font-medium text-slate-300">Zoom Multiplier</span>
+              <span id="zoomScaleVal" class="text-indigo-400 font-semibold">1.8x</span>
+            </div>
+            <input type="range" id="zoomScaleSlider" min="1.0" max="4.0" step="0.1" value="1.8" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+          </div>
+        </div>
+
+        <!-- EDITABLE TEXT CONTROLS -->
         <div id="textControlsSection" class="space-y-4 hidden border-l-2 border-indigo-500 pl-3">
           <h3 class="text-xs font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
             <i data-lucide="edit-3" class="w-3.5 h-3.5"></i> Text Overlay Settings
           </h3>
 
-          <!-- Text Content Field -->
           <div class="space-y-1.5">
             <label class="text-xs font-medium text-slate-300">Callout Text Content</label>
-            <textarea id="textContentInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition resize-y font-sans leading-relaxed" placeholder="Type highlight text here..."></textarea>
+            <textarea id="textContentInput" rows="3" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 focus:outline-none focus:border-indigo-500 transition font-sans leading-relaxed"></textarea>
           </div>
 
-          <!-- Font Size & Weight -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
               <label class="text-xs font-medium text-slate-300">Font Size (<span id="fontSizeVal">18</span>px)</label>
@@ -174,78 +219,23 @@
             </div>
           </div>
 
-          <!-- Font Family & Alignment -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1.5">
-              <label class="text-xs font-medium text-slate-300">Font Style</label>
-              <select id="fontFamilySelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="Inter">Sans-Serif</option>
-                <option value="Merriweather">Serif</option>
-                <option value="JetBrains Mono">Monospace</option>
-              </select>
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-xs font-medium text-slate-300">Alignment</label>
-              <div class="flex bg-slate-950 border border-slate-800 rounded-lg p-0.5">
-                <button id="alignLeftBtn" class="flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center"><i data-lucide="align-left" class="w-3.5 h-3.5"></i></button>
-                <button id="alignCenterBtn" class="flex-1 py-1 text-white bg-slate-800 rounded flex justify-center"><i data-lucide="align-center" class="w-3.5 h-3.5"></i></button>
-                <button id="alignRightBtn" class="flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center"><i data-lucide="align-right" class="w-3.5 h-3.5"></i></button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Text Color Picker -->
           <div class="space-y-1.5">
             <span class="text-xs font-medium text-slate-300 block">Text Color</span>
-            <div class="flex items-center gap-2">
-              <input type="color" id="textColorPicker" value="#ffffff" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
-              <div class="flex gap-1.5">
-                <button onclick="setTextColor('#ffffff')" class="w-5 h-5 rounded-full bg-white border border-slate-600"></button>
-                <button onclick="setTextColor('#f8fafc')" class="w-5 h-5 rounded-full bg-slate-100 border border-slate-600"></button>
-                <button onclick="setTextColor('#fef08a')" class="w-5 h-5 rounded-full bg-yellow-200 border border-slate-600"></button>
-                <button onclick="setTextColor('#38bdf8')" class="w-5 h-5 rounded-full bg-sky-400 border border-slate-600"></button>
-                <button onclick="setTextColor('#4ade80')" class="w-5 h-5 rounded-full bg-green-400 border border-slate-600"></button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CROP MAGNIFICATION SECTION (Visible in Zoom Crop mode) -->
-        <div id="cropControlsSection" class="space-y-3 border-l-2 border-indigo-500 pl-3">
-          <h3 class="text-xs font-bold uppercase text-indigo-400 tracking-wider flex items-center gap-1.5">
-            <i data-lucide="zoom-in" class="w-3.5 h-3.5"></i> Crop & Zoom Settings
-          </h3>
-          <div class="space-y-1.5">
-            <div class="flex justify-between text-xs">
-              <span class="font-medium text-slate-300">Magnification Scale</span>
-              <span id="zoomScaleVal" class="text-indigo-400 font-semibold">1.8x</span>
-            </div>
-            <input type="range" id="zoomScaleSlider" min="1.0" max="3.5" step="0.1" value="1.8" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            <input type="color" id="textColorPicker" value="#ffffff" class="w-full h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
           </div>
         </div>
 
         <hr class="border-slate-800">
 
-        <!-- CALLOUT CARD APPEARANCE -->
+        <!-- 3. CALLOUT CARD APPEARANCE -->
         <div class="space-y-4">
-          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Callout Card Style</h3>
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Card Design</h3>
 
-          <!-- Card Background Color -->
           <div class="space-y-1.5">
             <span class="text-xs font-medium text-slate-300 block">Card Background</span>
-            <div class="flex items-center gap-2">
-              <input type="color" id="cardBgColorPicker" value="#0f172a" class="w-7 h-7 rounded border border-slate-700 bg-slate-900 cursor-pointer">
-              <div class="flex gap-1.5 flex-wrap">
-                <button onclick="setCardBgColor('#0f172a')" class="w-5 h-5 rounded-full bg-slate-900 border border-slate-600" title="Dark Slate"></button>
-                <button onclick="setCardBgColor('#18181b')" class="w-5 h-5 rounded-full bg-zinc-900 border border-slate-600" title="Zinc Dark"></button>
-                <button onclick="setCardBgColor('#ffffff')" class="w-5 h-5 rounded-full bg-white border border-slate-600" title="Clean White"></button>
-                <button onclick="setCardBgColor('#fef3c7')" class="w-5 h-5 rounded-full bg-amber-100 border border-slate-600" title="Note Yellow"></button>
-                <button onclick="setCardBgColor('#1e1b4b')" class="w-5 h-5 rounded-full bg-indigo-950 border border-slate-600" title="Deep Indigo"></button>
-              </div>
-            </div>
+            <input type="color" id="cardBgColorPicker" value="#0f172a" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
           </div>
 
-          <!-- Card Border Accent Color & Thickness -->
           <div class="grid grid-cols-2 gap-3">
             <div class="space-y-1.5">
               <span class="text-xs font-medium text-slate-300 block">Accent Color</span>
@@ -256,61 +246,33 @@
               <input type="range" id="borderWidthSlider" min="1" max="8" step="1" value="3" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
             </div>
           </div>
-
-          <!-- Card Corner Radius & Drop Shadow -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1.5">
-              <label class="text-xs font-medium text-slate-300">Rounded Corner</label>
-              <input type="range" id="borderRadiusSlider" min="0" max="24" step="2" value="12" class="w-full accent-indigo-500 bg-slate-800 h-1.5 rounded-lg appearance-none cursor-pointer">
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-xs font-medium text-slate-300">Drop Shadow</label>
-              <select id="shadowSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="none">None</option>
-                <option value="medium">Soft</option>
-                <option value="heavy" selected>Deep Slide</option>
-              </select>
-            </div>
-          </div>
         </div>
 
         <hr class="border-slate-800">
 
-        <!-- CONNECTOR LINE STYLES -->
+        <!-- 4. LEADER LINE STYLES -->
         <div class="space-y-4">
           <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Leader Line / Arrow</h3>
 
-          <!-- Connector Line Type -->
           <div class="space-y-1.5">
-            <label class="text-xs font-medium text-slate-300">Line Style</label>
+            <label class="text-xs font-medium text-slate-300">Line Shape</label>
             <div class="grid grid-cols-3 gap-1 text-xs">
-              <button id="lineStyleStraightBtn" class="py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium">Straight</button>
-              <button id="lineStyleCurvedBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium">Curved</button>
-              <button id="lineStyleStepBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium">Step Arc</button>
+              <button id="lineStyleStraightBtn" class="py-1.5 bg-indigo-600 text-white rounded font-medium">Straight</button>
+              <button id="lineStyleCurvedBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium">Curved</button>
+              <button id="lineStyleStepBtn" class="py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium">Step</button>
             </div>
           </div>
 
-          <!-- Line Color & Dash -->
-          <div class="grid grid-cols-2 gap-3">
-            <div class="space-y-1.5">
-              <span class="text-xs font-medium text-slate-300 block">Line Color</span>
-              <input type="color" id="lineColorPicker" value="#818cf8" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
-            </div>
-            <div class="space-y-1.5">
-              <label class="text-xs font-medium text-slate-300">Dash Pattern</label>
-              <select id="lineDashSelect" class="w-full bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
-                <option value="solid" selected>Solid Line</option>
-                <option value="dashed">Dashed</option>
-                <option value="dotted">Dotted</option>
-              </select>
-            </div>
+          <div class="space-y-1.5">
+            <span class="text-xs font-medium text-slate-300 block">Line Color</span>
+            <input type="color" id="lineColorPicker" value="#818cf8" class="w-full h-8 rounded border border-slate-700 bg-slate-900 cursor-pointer">
           </div>
         </div>
 
       </div>
 
       <div class="p-4 bg-slate-950/80 border-t border-slate-800 text-[11px] text-slate-500 text-center">
-        Designed for High-Res Presentation Exports (100% Crisp Vector Lines)
+        Ready for Presentation Export (16:9 Widescreen)
       </div>
     </aside>
 
@@ -320,100 +282,81 @@
     // Initialize Lucide icons
     lucide.createIcons();
 
-    // Elements
+    // DOM Elements
     const canvas = document.getElementById('mainCanvas');
     const ctx = canvas.getContext('2d');
     const imageUpload = document.getElementById('imageUpload');
     const imageUpload2 = document.getElementById('imageUpload2');
     const exportBtn = document.getElementById('exportBtn');
     const emptyState = document.getElementById('emptyState');
-    const canvasHint = document.getElementById('canvasHint');
 
-    // Controls DOM
+    // Controls
+    const aspectRatioSelect = document.getElementById('aspectRatioSelect');
+    const alignImgLeftBtn = document.getElementById('alignImgLeftBtn');
+    const alignImgCenterBtn = document.getElementById('alignImgCenterBtn');
+    const alignImgRightBtn = document.getElementById('alignImgRightBtn');
+    const canvasBgColorPicker = document.getElementById('canvasBgColorPicker');
+
     const modeCropBtn = document.getElementById('modeCropBtn');
     const modeTextBtn = document.getElementById('modeTextBtn');
     const cropControlsSection = document.getElementById('cropControlsSection');
     const textControlsSection = document.getElementById('textControlsSection');
 
+    const zoomScaleSlider = document.getElementById('zoomScaleSlider');
+    const zoomScaleVal = document.getElementById('zoomScaleVal');
+
     const textContentInput = document.getElementById('textContentInput');
     const fontSizeSlider = document.getElementById('fontSizeSlider');
     const fontSizeVal = document.getElementById('fontSizeVal');
     const fontWeightSelect = document.getElementById('fontWeightSelect');
-    const fontFamilySelect = document.getElementById('fontFamilySelect');
     const textColorPicker = document.getElementById('textColorPicker');
-
-    const alignLeftBtn = document.getElementById('alignLeftBtn');
-    const alignCenterBtn = document.getElementById('alignCenterBtn');
-    const alignRightBtn = document.getElementById('alignRightBtn');
-
-    const zoomScaleSlider = document.getElementById('zoomScaleSlider');
-    const zoomScaleVal = document.getElementById('zoomScaleVal');
 
     const cardBgColorPicker = document.getElementById('cardBgColorPicker');
     const accentColorPicker = document.getElementById('accentColorPicker');
     const borderWidthSlider = document.getElementById('borderWidthSlider');
-    const borderRadiusSlider = document.getElementById('borderRadiusSlider');
-    const shadowSelect = document.getElementById('shadowSelect');
 
     const lineStyleStraightBtn = document.getElementById('lineStyleStraightBtn');
     const lineStyleCurvedBtn = document.getElementById('lineStyleCurvedBtn');
     const lineStyleStepBtn = document.getElementById('lineStyleStepBtn');
     const lineColorPicker = document.getElementById('lineColorPicker');
-    const lineDashSelect = document.getElementById('lineDashSelect');
 
-    // App State
+    // State Management
     let loadedImage = null;
 
     let state = {
+      aspectRatio: '16:9', // '16:9' | '4:3' | 'padding-wide' | 'padding-all'
+      imgAlign: 'left', // 'left' | 'center' | 'right'
+      canvasBgColor: '#0f172a',
+
       mode: 'crop', // 'crop' | 'text'
-      
-      // Target Frame on main image (percentages 0..1)
-      target: {
-        x: 0.2,
-        y: 0.35,
-        w: 0.25,
-        h: 0.20
-      },
 
-      // Callout Box Position & Size (percentages 0..1 relative to canvas)
-      callout: {
-        x: 0.55,
-        y: 0.25,
-        w: 0.38,
-        h: 0.40
-      },
+      // Normalized coordinates (0..1) relative to overall slide canvas
+      // Target Box (Selection on top of image)
+      target: { x: 0.10, y: 0.25, w: 0.38, h: 0.18 },
 
-      // Text settings
-      text: "Highlighted key excerpt from screenshot.\nEditable text replaces unreadable small fonts for presentation slides.",
+      // Callout Box (Positioned on the side margin canvas area)
+      callout: { x: 0.58, y: 0.20, w: 0.38, h: 0.55 },
+
+      text: "Magnified detail displayed in side canvas space so original screenshot stays completely visible.",
       fontSize: 18,
       fontWeight: "600",
-      fontFamily: "Inter",
-      textAlign: "center",
       textColor: "#ffffff",
 
-      // Zoom scale for crop mode
       zoomScale: 1.8,
 
-      // Styling
       cardBgColor: "#0f172a",
       accentColor: "#6366f1",
       borderWidth: 3,
-      borderRadius: 12,
-      shadow: "heavy",
 
-      // Connector line
-      lineStyle: "straight", // 'straight' | 'curved' | 'step'
-      lineColor: "#818cf8",
-      lineDash: "solid"
+      lineStyle: "straight",
+      lineColor: "#818cf8"
     };
 
-    // Interaction State
     let activeDrag = null; // 'target' | 'target-resize' | 'callout' | 'callout-resize'
     let dragStartPos = { x: 0, y: 0 };
     let initialBounds = null;
 
-    // --- Image Upload Handling ---
-
+    // --- File Loading ---
     function handleFile(file) {
       if (!file) return;
       const reader = new FileReader();
@@ -422,9 +365,7 @@
         img.onload = () => {
           loadedImage = img;
           emptyState.style.display = 'none';
-          canvasHint.classList.remove('opacity-0');
-          initDefaultPositions();
-          resizeCanvas();
+          recalculateCanvasDimensions();
           render();
         };
         img.src = e.target.result;
@@ -435,47 +376,40 @@
     imageUpload.addEventListener('change', (e) => handleFile(e.target.files[0]));
     imageUpload2.addEventListener('change', (e) => handleFile(e.target.files[0]));
 
-    function loadSampleImage() {
-      // Create a nice mock browser window sample with dense text
+    // Generate Default Demo Screenshot on Load
+    function loadDemoImage() {
       const tempCanvas = document.createElement('canvas');
       tempCanvas.width = 1200;
       tempCanvas.height = 700;
       const tCtx = tempCanvas.getContext('2d');
 
-      // Browser Header
       tCtx.fillStyle = "#1e293b";
       tCtx.fillRect(0, 0, 1200, 700);
 
-      // Top Bar
+      // Top Header
       tCtx.fillStyle = "#0f172a";
       tCtx.fillRect(0, 0, 1200, 48);
       
-      // Window Dots
       tCtx.fillStyle = "#ef4444"; tCtx.beginPath(); tCtx.arc(24, 24, 6, 0, Math.PI*2); tCtx.fill();
       tCtx.fillStyle = "#f59e0b"; tCtx.beginPath(); tCtx.arc(44, 24, 6, 0, Math.PI*2); tCtx.fill();
       tCtx.fillStyle = "#10b981"; tCtx.beginPath(); tCtx.arc(64, 24, 6, 0, Math.PI*2); tCtx.fill();
 
-      // URL bar
       tCtx.fillStyle = "#334155";
       tCtx.beginPath(); tCtx.roundRect(100, 10, 600, 28, 6); tCtx.fill();
       tCtx.fillStyle = "#94a3b8"; tCtx.font = "13px sans-serif";
       tCtx.fillText("https://quora.com/what-is-a-chapter-book-dont-all-books-have-chapters", 115, 28);
 
-      // Main content body
       tCtx.fillStyle = "#020617";
       tCtx.fillRect(0, 48, 1200, 652);
 
-      // Question Title
       tCtx.fillStyle = "#f8fafc";
       tCtx.font = "bold 26px sans-serif";
       tCtx.fillText("What is a chapter book? Don't all books have chapters?", 60, 110);
 
-      // Author info
       tCtx.fillStyle = "#94a3b8";
       tCtx.font = "14px sans-serif";
       tCtx.fillText("Lawrence Watt-Evans • 35 years of professional writing", 60, 145);
 
-      // Dense small text block (the target focus area)
       tCtx.fillStyle = "#cbd5e1";
       tCtx.font = "15px/1.6 sans-serif";
       tCtx.fillText("A 'chapter book' means a book aimed at young readers — older than the kids who read", 60, 190);
@@ -485,63 +419,76 @@
       tCtx.fillText("Yes, it's a stupid name. I don't know how it originated; I found it confusing when I first", 60, 280);
       tCtx.fillText("encountered it, too.", 60, 305);
 
-      tCtx.fillText("And no, not all books have chapters. Most do, but not all. Fantasy humor writer Terry", 60, 345);
-      tCtx.fillText("Pratchett only used chapters in maybe a quarter of his books. Other writers have also", 60, 370);
-      tCtx.fillText("written books with no chapters, though it's unusual.", 60, 395);
-
-      // Sidebar box
-      tCtx.fillStyle = "#0f172a";
-      tCtx.strokeStyle = "#1e293b";
-      tCtx.lineWidth = 2;
-      tCtx.beginPath(); tCtx.roundRect(780, 90, 380, 500, 12); tCtx.fill(); tCtx.stroke();
-      tCtx.fillStyle = "#6366f1"; tCtx.font = "bold 16px sans-serif";
-      tCtx.fillText("Related Questions", 800, 130);
-
       const sampleImg = new Image();
       sampleImg.onload = () => {
         loadedImage = sampleImg;
-        emptyState.style.display = 'none';
-        canvasHint.classList.remove('opacity-0');
-        initDefaultPositions();
-        resizeCanvas();
+        textContentInput.value = state.text;
+        recalculateCanvasDimensions();
         render();
       };
       sampleImg.src = tempCanvas.toDataURL();
     }
 
-    function initDefaultPositions() {
-      // Set reasonable default relative coordinates
-      state.target = { x: 0.04, y: 0.22, w: 0.58, h: 0.18 };
-      state.callout = { x: 0.52, y: 0.48, w: 0.44, h: 0.42 };
-      state.text = "A \"chapter book\" means a book aimed at young readers — older than the kids who read picture books, younger than the \"young adult\" audience.";
-      textContentInput.value = state.text;
-    }
+    // Canvas Size Calculation (Expand Slide Canvas around image)
+    let imagePlacement = { x: 0, y: 0, w: 0, h: 0 };
 
-    function resizeCanvas() {
+    function recalculateCanvasDimensions() {
       if (!loadedImage) return;
-      canvas.width = loadedImage.width;
-      canvas.height = loadedImage.height;
+
+      const imgW = loadedImage.width;
+      const imgH = loadedImage.height;
+
+      let canvasW = imgW;
+      let canvasH = imgH;
+
+      if (state.aspectRatio === '16:9') {
+        canvasW = Math.max(imgW * 1.7, imgH * (16 / 9));
+        canvasH = canvasW * (9 / 16);
+      } else if (state.aspectRatio === '4:3') {
+        canvasW = Math.max(imgW * 1.5, imgH * (4 / 3));
+        canvasH = canvasW * (3 / 4);
+      } else if (state.aspectRatio === 'padding-wide') {
+        canvasW = imgW * 1.7;
+        canvasH = imgH;
+      } else if (state.aspectRatio === 'padding-all') {
+        canvasW = imgW * 1.5;
+        canvasH = imgH * 1.3;
+      }
+
+      canvas.width = canvasW;
+      canvas.height = canvasH;
+
+      // Calculate Image Placement within expanded slide canvas
+      let imgX = 0;
+      if (state.imgAlign === 'center') imgX = (canvasW - imgW) / 2;
+      if (state.imgAlign === 'right') imgX = canvasW - imgW;
+
+      let imgY = (canvasH - imgH) / 2;
+
+      imagePlacement = { x: imgX, y: imgY, w: imgW, h: imgH };
     }
-
-    window.addEventListener('resize', () => {
-      if (loadedImage) render();
-    });
-
-    // --- STREAMING_CHUNK:Rendering Canvas Callouts, Lines & Highlights... ---
 
     function render() {
       if (!loadedImage) return;
 
-      // Clear canvas
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-
       const W = canvas.width;
       const H = canvas.height;
 
-      // 1. Draw Original Background Image
-      ctx.drawImage(loadedImage, 0, 0, W, H);
+      ctx.clearRect(0, 0, W, H);
 
-      // Convert relative coords to actual pixel values
+      // 1. Outer Slide Canvas Background
+      ctx.fillStyle = state.canvasBgColor;
+      ctx.fillRect(0, 0, W, H);
+
+      // 2. Draw Original Image inside its designated frame
+      ctx.drawImage(loadedImage, imagePlacement.x, imagePlacement.y, imagePlacement.w, imagePlacement.h);
+
+      // Outer Image Boundary Line
+      ctx.strokeStyle = "rgba(255,255,255,0.1)";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(imagePlacement.x, imagePlacement.y, imagePlacement.w, imagePlacement.h);
+
+      // Convert Relative Positions to Canvas Pixels
       const tX = state.target.x * W;
       const tY = state.target.y * H;
       const tW = state.target.w * W;
@@ -552,20 +499,10 @@
       const cW = state.callout.w * W;
       const cH = state.callout.h * H;
 
-      // 2. Draw Dimming Mask over original image (Except Target Region)
-      ctx.save();
-      ctx.fillStyle = "rgba(2, 6, 23, 0.45)";
-      ctx.beginPath();
-      ctx.rect(0, 0, W, H);
-      // Cut out target box
-      ctx.rect(tX, tY, tW, tH);
-      ctx.fill("evenodd");
-      ctx.restore();
-
-      // 3. Draw Leader / Connector Line
+      // 3. Draw Connector Line from Image Target -> Side Callout Card
       drawConnectorLine(tX, tY, tW, tH, cX, cY, cW, cH);
 
-      // 4. Draw Source Target Frame Box
+      // 4. Draw Selection Target Box on Image
       ctx.save();
       ctx.strokeStyle = state.accentColor;
       ctx.lineWidth = Math.max(3, state.borderWidth);
@@ -576,43 +513,24 @@
       ctx.setLineDash([]);
       ctx.fillStyle = state.accentColor;
       const handleSize = 8 * (W / 1000);
-      drawCornerHandles(tX, tY, tW, tH, handleSize);
+      drawCornerHandle(tX + tW, tY + tH, handleSize);
       ctx.restore();
 
-      // 5. Draw Callout Box (Card)
+      // 5. Draw Side Canvas Callout Card
       drawCalloutCard(cX, cY, cW, cH, tX, tY, tW, tH);
     }
 
-    function drawCornerHandles(x, y, w, h, size) {
+    function drawCornerHandle(x, y, size) {
       ctx.fillRect(x - size/2, y - size/2, size, size);
-      ctx.fillRect(x + w - size/2, y - size/2, size, size);
-      ctx.fillRect(x - size/2, y + h - size/2, size, size);
-      ctx.fillRect(x + w - size/2, y + h - size/2, size, size);
     }
 
     function drawConnectorLine(tx, ty, tw, th, cx, cy, cw, ch) {
-      // Find closest anchor points between target frame and callout box
-      const targetCenter = { x: tx + tw/2, y: ty + th/2 };
-      const calloutCenter = { x: cx + cw/2, y: cy + ch/2 };
-
-      // Determine connector anchor on target (edge facing callout)
-      let p1 = { x: tx + tw, y: ty + th/2 };
-      if (calloutCenter.x < targetCenter.x) p1 = { x: tx, y: ty + th/2 };
-      if (Math.abs(calloutCenter.x - targetCenter.x) < tw/2) {
-        p1 = calloutCenter.y > targetCenter.y ? { x: tx + tw/2, y: ty + th } : { x: tx + tw/2, y: ty };
-      }
-
-      // Determine connector anchor on callout
-      let p2 = { x: cx, y: cy + ch/2 };
-      if (calloutCenter.x < targetCenter.x) p2 = { x: cx + cw, y: cy + ch/2 };
+      const p1 = { x: tx + tw, y: ty + th/2 };
+      const p2 = { x: cx, y: cy + ch/2 };
 
       ctx.save();
       ctx.strokeStyle = state.lineColor;
       ctx.lineWidth = Math.max(2, state.borderWidth);
-
-      // Dash pattern
-      if (state.lineDash === 'dashed') ctx.setLineDash([8, 6]);
-      else if (state.lineDash === 'dotted') ctx.setLineDash([3, 4]);
 
       ctx.beginPath();
       ctx.moveTo(p1.x, p1.y);
@@ -630,120 +548,88 @@
       }
       ctx.stroke();
 
-      // Draw Arrow Head at target end
-      drawArrowhead(p2, p1, Math.max(10, state.borderWidth * 3));
-      ctx.restore();
-    }
-
-    function drawArrowhead(from, to, radius) {
-      const x_center = to.x;
-      const y_center = to.y;
-      const angle = Math.atan2(to.y - from.y, to.x - from.x);
-
-      ctx.save();
+      // Arrow head at destination callout
+      const angle = Math.atan2(p2.y - p1.y, p2.x - p1.x);
+      const headLen = 12 * (canvas.width / 1000);
       ctx.fillStyle = state.lineColor;
       ctx.beginPath();
-      ctx.moveTo(x_center, y_center);
-      ctx.lineTo(
-        x_center - radius * Math.cos(angle - Math.PI / 6),
-        y_center - radius * Math.sin(angle - Math.PI / 6)
-      );
-      ctx.lineTo(
-        x_center - radius * Math.cos(angle + Math.PI / 6),
-        y_center - radius * Math.sin(angle + Math.PI / 6)
-      );
+      ctx.moveTo(p2.x, p2.y);
+      ctx.lineTo(p2.x - headLen * Math.cos(angle - Math.PI / 6), p2.y - headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(p2.x - headLen * Math.cos(angle + Math.PI / 6), p2.y - headLen * Math.sin(angle + Math.PI / 6));
       ctx.closePath();
       ctx.fill();
+
       ctx.restore();
     }
 
     function drawCalloutCard(cx, cy, cw, ch, tx, ty, tw, th) {
       ctx.save();
 
-      // Card Drop Shadow
-      if (state.shadow !== 'none') {
-        ctx.shadowColor = 'rgba(0, 0, 0, 0.6)';
-        ctx.shadowBlur = state.shadow === 'heavy' ? 35 : 18;
-        ctx.shadowOffsetX = 0;
-        ctx.shadowOffsetY = state.shadow === 'heavy' ? 15 : 8;
-      }
+      // Drop shadow for side card
+      ctx.shadowColor = 'rgba(0, 0, 0, 0.5)';
+      ctx.shadowBlur = 24;
+      ctx.shadowOffsetY = 10;
 
-      // Background Card Shape
+      // Card Body
       ctx.fillStyle = state.cardBgColor;
       ctx.beginPath();
-      ctx.roundRect(cx, cy, cw, ch, state.borderRadius);
+      ctx.roundRect(cx, cy, cw, ch, 12);
       ctx.fill();
 
-      // Reset Shadow for Content Inner Clipping
       ctx.shadowColor = 'transparent';
-
-      // Outer Border
       ctx.lineWidth = state.borderWidth;
       ctx.strokeStyle = state.accentColor;
       ctx.stroke();
 
-      // Clip content inside Callout Rounded Rectangle
       ctx.clip();
 
       if (state.mode === 'crop') {
-        // --- CROP MODE: Render Scaled & Magnified Region ---
-        const zoom = state.zoomScale;
-        const cropW = tw;
-        const cropH = th;
+        // Calculate crop relative to original image coordinates
+        const cropX = tx - imagePlacement.x;
+        const cropY = ty - imagePlacement.y;
 
-        // Draw cropped source portion stretched/scaled into callout
         ctx.drawImage(
           loadedImage,
-          tx, ty, cropW, cropH,
+          cropX, cropY, tw, th,
           cx, cy, cw, ch
         );
       } else {
-        // --- TEXT MODE: Render Editable Styled Text Overlay ---
+        // Render editable text
         ctx.fillStyle = state.textColor;
-        ctx.font = `${state.fontWeight} ${state.fontSize * (canvas.width / 1000)}px ${state.fontFamily}, sans-serif`;
-        ctx.textAlign = state.textAlign;
+        ctx.font = `${state.fontWeight} ${state.fontSize * (canvas.width / 1000)}px Inter, sans-serif`;
+        ctx.textAlign = "left";
         ctx.textBaseline = "top";
 
-        const padding = 20 * (canvas.width / 1000);
-        const maxTextWidth = cw - padding * 2;
-        
-        let textX = cx + padding;
-        if (state.textAlign === 'center') textX = cx + cw / 2;
-        if (state.textAlign === 'right') textX = cx + cw - padding;
-
-        const lines = wrapText(ctx, state.text, maxTextWidth);
+        const padding = 24 * (canvas.width / 1000);
+        const maxW = cw - padding * 2;
+        const lines = wrapText(ctx, state.text, maxW);
         const lineHeight = state.fontSize * 1.4 * (canvas.width / 1000);
-        let startY = cy + padding;
+        let curY = cy + padding;
 
-        lines.forEach((line) => {
-          ctx.fillText(line, textX, startY);
-          startY += lineHeight;
+        lines.forEach(line => {
+          ctx.fillText(line, cx + padding, curY);
+          curY += lineHeight;
         });
       }
 
-      // Draw Resize Handle for Callout Box at Bottom-Right
+      // Draw Resize Handle for Callout Box
       ctx.restore();
       ctx.save();
       ctx.fillStyle = state.accentColor;
-      const size = 10 * (canvas.width / 1000);
-      ctx.beginPath();
-      ctx.roundRect(cx + cw - size - 2, cy + ch - size - 2, size, size, 2);
-      ctx.fill();
+      const handleSize = 10 * (canvas.width / 1000);
+      drawCornerHandle(cx + cw, cy + ch, handleSize);
       ctx.restore();
     }
 
     function wrapText(context, text, maxWidth) {
       const paragraphs = text.split('\n');
       let lines = [];
-
       paragraphs.forEach(paragraph => {
         const words = paragraph.split(' ');
         let currentLine = '';
-
         words.forEach(word => {
           const testLine = currentLine ? `${currentLine} ${word}` : word;
-          const metrics = context.measureText(testLine);
-          if (metrics.width > maxWidth && currentLine) {
+          if (context.measureText(testLine).width > maxWidth && currentLine) {
             lines.push(currentLine);
             currentLine = word;
           } else {
@@ -752,23 +638,14 @@
         });
         lines.push(currentLine);
       });
-
       return lines;
     }
-
-    // --- STREAMING_CHUNK:Adding Drag, Drop & Resizing Event Handlers... ---
 
     function getCanvasCoords(e) {
       const rect = canvas.getBoundingClientRect();
       const clientX = e.touches ? e.touches[0].clientX : e.clientX;
       const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-
-      const scaleX = canvas.width / rect.width;
-      const scaleY = canvas.height / rect.height;
-
       return {
-        x: (clientX - rect.left) * scaleX,
-        y: (clientY - rect.top) * scaleY,
         relX: (clientX - rect.left) / rect.width,
         relY: (clientY - rect.top) / rect.height
       };
@@ -780,25 +657,18 @@
       const W = canvas.width;
       const H = canvas.height;
 
-      const t = { x: state.target.x * W, y: state.target.y * H, w: state.target.w * W, h: state.target.h * H };
-      const c = { x: state.callout.x * W, y: state.callout.y * H, w: state.callout.w * W, h: state.callout.h * H };
+      const t = { x: state.target.x, y: state.target.y, w: state.target.w, h: state.target.h };
+      const c = { x: state.callout.x, y: state.callout.y, w: state.callout.w, h: state.callout.h };
 
-      const handleMargin = 16 * (W / 1000);
+      const margin = 0.03;
 
-      // Check Target Corner Handles (Resize)
-      if (Math.abs(pos.x - (t.x + t.w)) < handleMargin && Math.abs(pos.y - (t.y + t.h)) < handleMargin) {
+      if (Math.abs(pos.relX - (t.x + t.w)) < margin && Math.abs(pos.relY - (t.y + t.h)) < margin) {
         activeDrag = 'target-resize';
-      } 
-      // Check Callout Resize Handle
-      else if (Math.abs(pos.x - (c.x + c.w)) < handleMargin && Math.abs(pos.y - (c.y + c.h)) < handleMargin) {
+      } else if (Math.abs(pos.relX - (c.x + c.w)) < margin && Math.abs(pos.relY - (c.y + c.h)) < margin) {
         activeDrag = 'callout-resize';
-      }
-      // Check Inside Target Box
-      else if (pos.x >= t.x && pos.x <= t.x + t.w && pos.y >= t.y && pos.y <= t.y + t.h) {
+      } else if (pos.relX >= t.x && pos.relX <= t.x + t.w && pos.relY >= t.y && pos.relY <= t.y + t.h) {
         activeDrag = 'target';
-      }
-      // Check Inside Callout Box
-      else if (pos.x >= c.x && pos.x <= c.x + c.w && pos.y >= c.y && pos.y <= c.y + c.h) {
+      } else if (pos.relX >= c.x && pos.relX <= c.x + c.w && pos.relY >= c.y && pos.relY <= c.y + c.h) {
         activeDrag = 'callout';
       }
 
@@ -833,25 +703,37 @@
 
     window.addEventListener('mouseup', () => { activeDrag = null; });
 
-    // Touch Support
-    canvas.addEventListener('touchstart', (e) => {
-      const touch = e.touches[0];
-      canvas.dispatchEvent(new MouseEvent('mousedown', { clientX: touch.clientX, clientY: touch.clientY }));
-      e.preventDefault();
-    }, { passive: false });
+    // UI Control Listeners
+    aspectRatioSelect.addEventListener('change', (e) => {
+      state.aspectRatio = e.target.value;
+      recalculateCanvasDimensions();
+      render();
+    });
 
-    window.addEventListener('touchmove', (e) => {
-      if (activeDrag) {
-        const touch = e.touches[0];
-        window.dispatchEvent(new MouseEvent('mousemove', { clientX: touch.clientX, clientY: touch.clientY }));
-      }
-    }, { passive: false });
+    alignImgLeftBtn.addEventListener('click', () => { setImgAlign('left'); });
+    alignImgCenterBtn.addEventListener('click', () => { setImgAlign('center'); });
+    alignImgRightBtn.addEventListener('click', () => { setImgAlign('right'); });
 
-    window.addEventListener('touchend', () => { activeDrag = null; });
+    function setImgAlign(align) {
+      state.imgAlign = align;
+      alignImgLeftBtn.className = align === 'left' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
+      alignImgCenterBtn.className = align === 'center' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
+      alignImgRightBtn.className = align === 'right' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
+      recalculateCanvasDimensions();
+      render();
+    }
 
-    // --- STREAMING_CHUNK:Connecting Control Panel Event Listeners... ---
+    canvasBgColorPicker.addEventListener('input', (e) => {
+      state.canvasBgColor = e.target.value;
+      render();
+    });
 
-    // Mode Toggle
+    function setCanvasBg(color) {
+      state.canvasBgColor = color;
+      canvasBgColorPicker.value = color;
+      render();
+    }
+
     modeCropBtn.addEventListener('click', () => {
       state.mode = 'crop';
       modeCropBtn.className = "py-2 px-3 bg-indigo-600 text-white font-medium text-xs rounded-lg flex items-center justify-center gap-1.5 transition shadow-sm";
@@ -870,143 +752,44 @@
       render();
     });
 
-    // Text inputs
-    textContentInput.addEventListener('input', (e) => {
-      state.text = e.target.value;
-      render();
-    });
+    textContentInput.addEventListener('input', (e) => { state.text = e.target.value; render(); });
+    fontSizeSlider.addEventListener('input', (e) => { state.fontSize = parseInt(e.target.value); fontSizeVal.textContent = state.fontSize; render(); });
+    fontWeightSelect.addEventListener('change', (e) => { state.fontWeight = e.target.value; render(); });
+    textColorPicker.addEventListener('input', (e) => { state.textColor = e.target.value; render(); });
 
-    fontSizeSlider.addEventListener('input', (e) => {
-      state.fontSize = parseInt(e.target.value, 10);
-      fontSizeVal.textContent = state.fontSize;
-      render();
-    });
+    cardBgColorPicker.addEventListener('input', (e) => { state.cardBgColor = e.target.value; render(); });
+    accentColorPicker.addEventListener('input', (e) => { state.accentColor = e.target.value; render(); });
+    borderWidthSlider.addEventListener('input', (e) => { state.borderWidth = parseInt(e.target.value); render(); });
 
-    fontWeightSelect.addEventListener('change', (e) => {
-      state.fontWeight = e.target.value;
-      render();
-    });
+    lineStyleStraightBtn.addEventListener('click', () => { setLineStyle('straight'); });
+    lineStyleCurvedBtn.addEventListener('click', () => { setLineStyle('curved'); });
+    lineStyleStepBtn.addEventListener('click', () => { setLineStyle('step'); });
 
-    fontFamilySelect.addEventListener('change', (e) => {
-      state.fontFamily = e.target.value;
-      render();
-    });
-
-    textColorPicker.addEventListener('input', (e) => {
-      state.textColor = e.target.value;
-      render();
-    });
-
-    function setTextColor(color) {
-      state.textColor = color;
-      textColorPicker.value = color;
+    function setLineStyle(style) {
+      state.lineStyle = style;
+      lineStyleStraightBtn.className = style === 'straight' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
+      lineStyleCurvedBtn.className = style === 'curved' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
+      lineStyleStepBtn.className = style === 'step' ? "py-1.5 bg-indigo-600 text-white rounded font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-white rounded border border-slate-800 font-medium";
       render();
     }
 
-    // Text Align
-    alignLeftBtn.addEventListener('click', () => { setAlign('left'); });
-    alignCenterBtn.addEventListener('click', () => { setAlign('center'); });
-    alignRightBtn.addEventListener('click', () => { setAlign('right'); });
+    lineColorPicker.addEventListener('input', (e) => { state.lineColor = e.target.value; render(); });
 
-    function setAlign(align) {
-      state.textAlign = align;
-      alignLeftBtn.className = align === 'left' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
-      alignCenterBtn.className = align === 'center' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
-      alignRightBtn.className = align === 'right' ? "flex-1 py-1 text-white bg-slate-800 rounded flex justify-center" : "flex-1 py-1 text-slate-400 hover:text-white rounded flex justify-center";
-      render();
-    }
-
-    // Zoom Scale
-    zoomScaleSlider.addEventListener('input', (e) => {
-      state.zoomScale = parseFloat(e.target.value);
-      zoomScaleVal.textContent = `${state.zoomScale.toFixed(1)}x`;
-      render();
-    });
-
-    // Callout Styling
-    cardBgColorPicker.addEventListener('input', (e) => {
-      state.cardBgColor = e.target.value;
-      render();
-    });
-
-    function setCardBgColor(color) {
-      state.cardBgColor = color;
-      cardBgColorPicker.value = color;
-      render();
-    }
-
-    accentColorPicker.addEventListener('input', (e) => {
-      state.accentColor = e.target.value;
-      render();
-    });
-
-    borderWidthSlider.addEventListener('input', (e) => {
-      state.borderWidth = parseInt(e.target.value, 10);
-      render();
-    });
-
-    borderRadiusSlider.addEventListener('input', (e) => {
-      state.borderRadius = parseInt(e.target.value, 10);
-      render();
-    });
-
-    shadowSelect.addEventListener('change', (e) => {
-      state.shadow = e.target.value;
-      render();
-    });
-
-    // Connector Line Buttons
-    lineStyleStraightBtn.addEventListener('click', () => {
-      state.lineStyle = 'straight';
-      updateLineButtons();
-      render();
-    });
-
-    lineStyleCurvedBtn.addEventListener('click', () => {
-      state.lineStyle = 'curved';
-      updateLineButtons();
-      render();
-    });
-
-    lineStyleStepBtn.addEventListener('click', () => {
-      state.lineStyle = 'step';
-      updateLineButtons();
-      render();
-    });
-
-    function updateLineButtons() {
-      lineStyleStraightBtn.className = state.lineStyle === 'straight' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
-      lineStyleCurvedBtn.className = state.lineStyle === 'curved' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
-      lineStyleStepBtn.className = state.lineStyle === 'step' ? "py-1.5 bg-slate-800 text-white rounded border border-slate-700 font-medium" : "py-1.5 bg-slate-950 text-slate-400 hover:text-slate-200 rounded border border-slate-800 font-medium";
-    }
-
-    lineColorPicker.addEventListener('input', (e) => {
-      state.lineColor = e.target.value;
-      render();
-    });
-
-    lineDashSelect.addEventListener('change', (e) => {
-      state.lineDash = e.target.value;
-      render();
-    });
-
-    // --- Export High-Res Image for Presentation Slides ---
+    // PNG Slide Export
     exportBtn.addEventListener('click', () => {
       if (!loadedImage) return;
-
       render();
-      const dataUrl = canvas.toDataURL('image/png', 1.0);
       const link = document.createElement('a');
-      link.download = `presentation-callout-${Date.now()}.png`;
-      link.href = dataUrl;
+      link.download = `presentation-side-callout-${Date.now()}.png`;
+      link.href = canvas.toDataURL('image/png', 1.0);
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
     });
 
-    // Auto load sample image on startup for quick demonstration
+    // Auto load demo image on launch
     window.addEventListener('load', () => {
-      loadSampleImage();
+      loadDemoImage();
     });
   </script>
 </body>
