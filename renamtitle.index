@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PDF Title Renamer</title>
+  
+  <!-- PDF Libraries from CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://unpkg.com/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+  
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      max-width: 650px;
+      margin: 40px auto;
+      padding: 0 20px;
+      color: #333;
+    }
+    .drop-zone {
+      border: 2px dashed #4A90E2;
+      border-radius: 8px;
+      padding: 40px;
+      text-align: center;
+      background: #f9fbfd;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .drop-zone:hover {
+      background: #f0f5fa;
+    }
+    .card {
+      margin-top: 20px;
+      border: 1px solid #e1e4e8;
+      border-radius: 8px;
+      padding: 20px;
+      display: none;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    button {
+      background-color: #2da44e;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 15px;
+      width: 100%;
+    }
+    button:hover {
+      background-color: #2c974b;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>PDF Title Renamer & Retagger</h2>
+  <p>Upload a PDF file to automatically detect its main title and download it with the corrected filename and internal metadata.</p>
+
+  <div class="drop-zone" onclick="document.getElementById('fileInput').click()">
+    <p>📄 Click or drag a PDF file here</p>
+    <input type="file" id="fileInput" accept="application/pdf" style="display: none;" />
+  </div>
+
+  <div class="card" id="outputCard">
+    <label for="detectedTitle"><strong>Detected Title:</strong></label>
+    <input type="text" id="detectedTitle" placeholder="Extracting title..." />
+    <button id="downloadBtn">Download Renamed PDF</button>
+  </div>
+
+  <script>
+    // Configure pdf.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+    const fileInput = document.getElementById('fileInput');
+    const outputCard = document.getElementById('outputCard');
+    const titleInput = document.getElementById('detectedTitle');
+    const downloadBtn = document.getElementById('downloadBtn');
+
+    let currentFileBuffer = null;
+
+    fileInput.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      currentFileBuffer = await file.arrayBuffer();
+      const extractedTitle = await extractMainTitle(currentFileBuffer);
+
+      titleInput.value = extractedTitle || file.name.replace(/\.pdf$/i, '');
+      outputCard.style.display = 'block';
+    });
+
+    // Strategy to find main title: Extract first page items and choose the text with maximum font size
+    async function extractMainTitle(arrayBuffer) {
+      try {
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer.slice(0) });
+        const pdf = await loadingTask.promise;
+        const page = await pdf.getPage(1);
+        const textContent = await page.getTextContent();
+
+        let largestSize = 0;
+        let candidateText = '';
+
+        for (const item of textContent.items) {
+          if (!item.str.trim()) continue;
+          
+          // item.transform[0] roughly indicates font scale/size in pdf.js
+          const fontSize = Math.abs(item.transform[0]);
+          
+          if (fontSize > largestSize) {
+            largestSize = fontSize;
+            candidateText = item.str.trim();
+          } else if (Math.abs(fontSize - largestSize) < 1) {
+            // Append text on the same header line/font size
+            candidateText += ' ' + item.str.trim();
+          }
+        }
+
+        return candidateText;
+      } catch (err) {
+        console.error("Failed to extract title from content:", err);
+        return "";
+      }
+    }
+
+    downloadBtn.addEventListener('click', async () => {
+      if (!currentFileBuffer) return;
+
+      const newTitle = titleInput.value.trim() || "Untitled_Document";
+      
+      // Load PDF via pdf-lib to update internal metadata
+      const pdfDoc = await PDFLib.PDFDocument.load(currentFileBuffer);
+      pdfDoc.setTitle(newTitle);
+
+      const modifiedPdfBytes = await pdfDoc.save();
+
+      // Trigger download with sanitized filename
+      const safeFilename = sanitizeFilename(newTitle) + ".pdf";
+      const blob = new Blob([modifiedPdfBytes], { type: "application/pdf" });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = safeFilename;
+      link.click();
+    });
+
+    function sanitizeFilename(name) {
+      return name.replace(/[/\\?%*:|"<>]/g, '-').trim();
+    }
+  </script>
+</body>
+</html>
