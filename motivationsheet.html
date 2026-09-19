@@ -34,34 +34,56 @@
       font-family: 'Bubblegum Sans', cursive;
     }
 
+    /* STRICT SINGLE-PAGE PRINT ENGINE */
     @media print {
       @page {
         size: letter portrait;
-        margin: 0.8cm;
+        margin: 0.5cm;
       }
-      body {
+
+      html, body {
+        height: 100% !important;
+        max-height: 100% !important;
+        overflow: hidden !important;
         background: white !important;
         color: black !important;
         padding: 0 !important;
         margin: 0 !important;
       }
+
       .no-print {
         display: none !important;
       }
+
       .print-only-container {
         width: 100% !important;
         max-width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
+        display: block !important;
       }
+
       .printable-sheet {
         border: 2px solid #000 !important;
         box-shadow: none !important;
-        page-break-inside: avoid;
-        padding: 1rem !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+        padding: 0.75rem !important;
         width: 100% !important;
         height: 98vh !important;
+        max-height: 98vh !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
+        box-sizing: border-box !important;
+      }
+
+      svg {
+        max-height: 100% !important;
+        width: 100% !important;
       }
     }
 
@@ -79,6 +101,7 @@
 </head>
 <body class="min-h-screen text-slate-800 flex flex-col justify-between">
 
+  <!-- TOP HEADER / NAVBAR -->
   <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print shadow-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
       <div class="flex items-center space-x-3">
@@ -89,38 +112,39 @@
           <h1 class="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
             Printable Kids Activity & Reward Sheet Builder
           </h1>
-          <p class="text-xs text-slate-500 hidden sm:block">Design crisp black-and-white coloring sheets for kids to write, color, and track</p>
+          <p class="text-xs text-slate-500 hidden sm:block">Design crisp black-and-white coloring sheets guaranteed to print on 1 single page</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-2">
         <button onclick="window.print()" class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center space-x-2 cursor-pointer">
           <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h1v2a1 1 0 001 1h8a1 1 0 001-1v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a1 1 0 00-1-1H6a1 1 0 00-1 1zm2-1h6v3H7V3zm8 12H5v-3h10v3zm-1-6a1 1 0 110-2 1 1 0 010 2z"/></svg>
-          <span>Print Worksheet</span>
+          <span>Print 1-Page Worksheet</span>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- MAIN CONTENT CONTAINER -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
 
-      <!-- LEFT SIDEBAR: CONTROLS -->
-      <section class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-6 no-print overflow-y-auto max-h-[88vh] sticky top-20">
+      <!-- LEFT SIDEBAR: CUSTOMIZATION CONTROLS -->
+      <section class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-5 no-print overflow-y-auto max-h-[88vh] sticky top-20">
         
         <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
           <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
             <span>⚙️</span>
-            <span>Sheet Options</span>
+            <span>Sheet Customizer</span>
           </h2>
-          <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full">Pure Line Art</span>
+          <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full">Guaranteed 1-Page</span>
         </div>
 
         <!-- 1. Theme Selection -->
         <div class="space-y-2">
           <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">1. Select Cute Theme</label>
-            <span class="text-[11px] text-pink-600 font-semibold">Easy-to-Color Outlines</span>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">1. Select Theme</label>
+            <span class="text-[11px] text-pink-600 font-semibold">Easy-to-Color Line Art</span>
           </div>
           
           <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="theme-buttons-container">
@@ -138,7 +162,7 @@
             <span class="text-[10px] bg-indigo-200 text-indigo-800 font-bold px-2 py-0.5 rounded-full">Sketch Mode</span>
           </div>
           <p class="text-[11px] text-indigo-700 leading-snug">
-            Upload any character or picture! We extract clean pencil/pen outlines so kids can color inside without dark hair or heavy black fills.
+            Upload any photo/character! We convert it to a crisp pencil outline so children can color inside without dark fills.
           </p>
           
           <div class="flex items-center space-x-2">
@@ -192,7 +216,7 @@
         <!-- 3. Header Space Mode -->
         <div class="space-y-3 pt-2 border-t border-slate-100">
           <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">3. Header Mode</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">3. Header Space Mode</label>
             <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
               <button id="mode-btn-handwriting" onclick="setHeaderMode('handwriting')" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-pink-600">
                 ✏️ Blank Space (Handwriting)
@@ -237,29 +261,29 @@
       <!-- RIGHT SIDE: LIVE PRINTABLE SHEET PREVIEW -->
       <section class="lg:col-span-7 flex flex-col items-center justify-start print-only-container w-full">
         
-        <div id="printable-area" class="printable-sheet bg-white w-full max-w-[700px] min-h-[920px] rounded-2xl shadow-xl border-2 border-slate-900 p-6 sm:p-8 flex flex-col justify-between relative transition-all duration-300">
+        <div id="printable-area" class="printable-sheet bg-white w-full max-w-[680px] h-[880px] rounded-2xl shadow-xl border-2 border-slate-900 p-5 sm:p-6 flex flex-col justify-between relative transition-all duration-300">
           
           <!-- TOP HEADER SECTION -->
-          <div class="w-full space-y-3">
+          <div class="w-full space-y-2">
             
             <!-- Title Banner -->
-            <div id="sheet-title-banner" class="text-center py-2 px-4 rounded-xl border-2 border-slate-900 bg-white relative">
+            <div id="sheet-title-banner" class="text-center py-1.5 px-3 rounded-xl border-2 border-slate-900 bg-white relative">
               <div id="display-title-container"></div>
             </div>
 
             <!-- Header Info Grid -->
-            <div id="sheet-info-grid" class="grid grid-cols-12 gap-3 text-sm">
-              <div class="col-span-7 border-2 border-slate-900 rounded-xl p-2.5 font-bold flex items-center space-x-2 min-h-[50px]">
+            <div id="sheet-info-grid" class="grid grid-cols-12 gap-2 text-sm">
+              <div class="col-span-7 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[44px]">
                 <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">NAME:</span>
                 <div id="display-name" class="flex-grow flex items-center"></div>
               </div>
               
-              <div class="col-span-5 border-2 border-slate-900 rounded-xl p-2.5 font-bold flex items-center space-x-2 min-h-[50px]">
+              <div class="col-span-5 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[44px]">
                 <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">DATE:</span>
                 <div id="display-date" class="flex-grow flex items-center"></div>
               </div>
 
-              <div class="col-span-12 border-2 border-slate-900 rounded-xl p-2.5 font-bold flex items-center space-x-2 min-h-[52px]">
+              <div class="col-span-12 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[46px]">
                 <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">MY GOAL:</span>
                 <div id="display-goal" class="flex-grow flex items-center"></div>
               </div>
@@ -267,22 +291,22 @@
 
           </div>
 
-          <!-- SHAPES CANVAS AREA (MAXIMIZED FULL PAGE WIDTH & HEIGHT) -->
-          <div id="target-shapes-container" class="my-2 flex-grow flex items-center justify-center w-full min-h-[520px] relative">
+          <!-- SHAPES CANVAS AREA (STRICT FLEX-FIT SINGLE PAGE CANVAS) -->
+          <div id="target-shapes-container" class="my-1 flex-grow flex items-center justify-center w-full min-h-0 overflow-hidden relative">
             <!-- Dynamic SVG content -->
           </div>
 
           <!-- BOTTOM REWARD BOX -->
-          <div class="w-full space-y-2">
-            <div id="sheet-reward-box" class="border-2 border-slate-900 rounded-xl p-3 bg-white flex items-center justify-between min-h-[52px]">
+          <div class="w-full space-y-1.5">
+            <div id="sheet-reward-box" class="border-2 border-slate-900 rounded-xl p-2.5 bg-white flex items-center justify-between min-h-[46px]">
               <div class="flex items-center space-x-2 w-full">
-                <span class="text-2xl shrink-0">🎁</span>
+                <span class="text-xl shrink-0">🎁</span>
                 <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">REWARD WISH:</span>
                 <div id="display-reward" class="flex-grow flex items-center"></div>
               </div>
             </div>
 
-            <div class="flex justify-between items-center text-[10px] text-slate-800 font-extrabold uppercase tracking-widest pt-1 border-t border-slate-300">
+            <div class="flex justify-between items-center text-[9px] sm:text-[10px] text-slate-800 font-extrabold uppercase tracking-widest pt-1 border-t border-slate-300">
               <span>COLOR OR STAMP EACH SHAPE WHEN COMPLETED!</span>
               <span>YOU CAN DO IT! ⭐</span>
             </div>
@@ -295,7 +319,7 @@
     </div>
   </main>
 
-  <!-- Offscreen Canvas for Outline Extraction -->
+  <!-- Offscreen Canvas for Line Sketch Processing -->
   <canvas id="offscreen-canvas" class="hidden"></canvas>
 
   <script>
@@ -401,7 +425,6 @@
       renderSheet();
     }
 
-    // Line-Sketch Outline Converter (Pencil/Pen Edge Extraction Filter)
     function processUploadedImage() {
       if (!state.rawImageObj) return;
 
@@ -413,7 +436,6 @@
       document.getElementById('threshold-val-text').textContent = threshold;
       document.getElementById('thickness-val-text').textContent = thickness;
 
-      // Downscale for clean edge processing
       const maxDim = 400;
       let w = state.rawImageObj.width;
       let h = state.rawImageObj.height;
@@ -434,7 +456,6 @@
       const imgData = ctx.getImageData(0, 0, w, h);
       const data = imgData.data;
 
-      // Convert to luminance array
       const gray = new Float32Array(w * h);
       for (let i = 0; i < data.length; i += 4) {
         gray[i / 4] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
@@ -443,12 +464,9 @@
       const output = ctx.createImageData(w, h);
       const outData = output.data;
 
-      // Adaptive Difference Gradient Magnitude (Line art filter)
       for (let y = 1; y < h - 1; y++) {
         for (let x = 1; x < w - 1; x++) {
           const idx = y * w + x;
-
-          // Local gradient magnitude
           const gx = Math.abs(gray[idx + 1] - gray[idx - 1]);
           const gy = Math.abs(gray[idx + w] - gray[idx - w]);
           const mag = (gx + gy) * thickness;
@@ -456,7 +474,6 @@
           const isLine = mag > threshold;
           const outIdx = idx * 4;
 
-          // Pure black outline on transparent/white background (no black filled blocks)
           if (isLine) {
             outData[outIdx] = 0;       // R
             outData[outIdx + 1] = 0;   // G
@@ -466,7 +483,7 @@
             outData[outIdx] = 255;     // R
             outData[outIdx + 1] = 255; // G
             outData[outIdx + 2] = 255; // B
-            outData[outIdx + 3] = 0;   // Transparent inside space for coloring
+            outData[outIdx + 3] = 0;   // Transparent interior
           }
         }
       }
@@ -490,14 +507,14 @@
       const titleContainer = document.getElementById('display-title-container');
       if (state.headerMode === 'handwriting') {
         titleContainer.innerHTML = `
-          <div class="h-8 w-full flex items-center justify-between px-2">
+          <div class="h-6 w-full flex items-center justify-between px-2">
             <span class="text-xs font-black text-slate-400 uppercase tracking-widest">CHALLENGE TITLE / ASSIGNMENT:</span>
-            <span class="text-xs font-bold text-slate-300">✏️ Handwriting Space</span>
+            <span class="text-[11px] font-bold text-slate-300">✏️ Blank Handwriting Space</span>
           </div>
         `;
       } else {
         titleContainer.innerHTML = `
-          <h2 class="text-xl sm:text-2xl font-black tracking-wider text-slate-900 uppercase">
+          <h2 class="text-lg sm:text-xl font-black tracking-wider text-slate-900 uppercase">
             ${state.title || 'ASSIGNMENT REWARD SHEET'}
           </h2>
         `;
@@ -515,8 +532,8 @@
         displayGoal.innerHTML = '<div class="w-full h-full"></div>';
         displayReward.innerHTML = '<div class="w-full h-full"></div>';
       } else {
-        displayName.innerHTML = `<span class="handwriting-font text-lg text-slate-900 font-bold">${state.name}</span>`;
-        displayDate.innerHTML = `<span class="handwriting-font text-lg text-slate-900 font-bold">${state.date}</span>`;
+        displayName.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.name}</span>`;
+        displayDate.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.date}</span>`;
         displayGoal.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.goal}</span>`;
         displayReward.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.reward}</span>`;
       }
@@ -549,8 +566,8 @@
       }
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 600 600");
-      svg.setAttribute("class", "w-full h-full max-h-[540px]");
+      svg.setAttribute("viewBox", "0 0 600 580");
+      svg.setAttribute("class", "w-full h-full max-h-[480px]");
 
       // Top Leaf
       const leafGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -563,10 +580,9 @@
 
       const grapesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
       let itemIndex = 1;
-      let startY = 160;
+      let startY = 155;
 
-      // Maximize radius dynamically
-      const radius = Math.min(55, Math.max(22, 380 / (rows.length + 1)));
+      const radius = Math.min(50, Math.max(20, 360 / (rows.length + 1)));
       const rowSpacing = radius * 1.65;
 
       rows.forEach((rowSize, rowIndex) => {
@@ -614,12 +630,12 @@
       const count = state.count;
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 600 620");
-      svg.setAttribute("class", "w-full h-full max-h-[540px]");
+      svg.setAttribute("viewBox", "0 0 600 580");
+      svg.setAttribute("class", "w-full h-full max-h-[480px]");
 
       // Jar Outline
       const jar = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      jar.setAttribute("d", "M 130 110 L 470 110 Q 480 110 480 130 L 480 150 C 545 240 545 520 480 575 C 435 605 165 605 120 575 C 55 520 55 240 120 150 L 120 130 Q 120 110 130 110 Z");
+      jar.setAttribute("d", "M 130 110 L 470 110 Q 480 110 480 130 L 480 150 C 545 240 545 500 480 550 C 435 580 165 580 120 550 C 55 500 55 240 120 150 L 120 130 Q 120 110 130 110 Z");
       jar.setAttribute("fill", "#FFFFFF");
       jar.setAttribute("stroke", "#000000");
       jar.setAttribute("stroke-width", "4.5");
@@ -642,8 +658,8 @@
 
       const startX = 135;
       const endX = 465;
-      const startY = 170;
-      const endY = 550;
+      const startY = 165;
+      const endY = 530;
 
       const cellW = (endX - startX) / cols;
       const cellH = (endY - startY) / rows;
@@ -683,13 +699,11 @@
       return svg;
     }
 
-    // Dynamic Full Width & Height Maximized Grid Renderer
     function generateFullWidthGridSVG() {
       const count = state.count;
 
       const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
 
-      // Compute optimum columns to utilize full width without blank margins
       let cols = 4;
       if (count <= 4) cols = 2;
       else if (count <= 9) cols = 3;
@@ -702,14 +716,13 @@
 
       const rows = Math.ceil(count / cols);
 
-      // SVG Canvas Dimensions (Full Width Layout)
       const svgWidth = 650;
       const cellWidth = svgWidth / cols;
-      const cellHeight = Math.min(130, Math.max(55, 520 / rows));
+      const cellHeight = Math.min(120, Math.max(48, 480 / rows));
       const svgHeight = rows * cellHeight + 10;
 
       svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
-      svg.setAttribute("class", "w-full h-full max-h-[540px]");
+      svg.setAttribute("class", "w-full h-full max-h-[480px]");
 
       for (let i = 1; i <= count; i++) {
         const col = (i - 1) % cols;
@@ -720,14 +733,11 @@
         const cx = x + cellWidth / 2;
         const cy = y + cellHeight / 2;
 
-        // Size optimized to fill as much of the cell as possible
         const size = Math.min(cellWidth, cellHeight) * 0.44;
 
         const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
 
-        // Custom Uploaded Image Sketch
         if (state.theme === 'custom' && state.customOutlineDataUrl) {
-          // Clean Outer Color Box
           const borderRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
           borderRect.setAttribute("x", cx - size);
           borderRect.setAttribute("y", cy - size);
@@ -748,17 +758,15 @@
           img.setAttribute("preserveAspectRatio", "xMidYMid meet");
           g.appendChild(img);
         } else {
-          // Cute Preset Line-Art Artwork
           g.innerHTML = renderCuteLineArt(state.theme, cx, cy, size);
         }
 
-        // Number Badge inside shape
         if (state.showNumbers) {
           const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
           text.setAttribute("x", cx);
           text.setAttribute("y", cy + (size * 0.28));
           text.setAttribute("text-anchor", "middle");
-          text.setAttribute("font-size", Math.max(14, size * 0.65));
+          text.setAttribute("font-size", Math.max(13, size * 0.65));
           text.setAttribute("font-weight", "bold");
           text.setAttribute("fill", "#000000");
           text.textContent = i;
@@ -778,7 +786,6 @@
       switch(theme) {
         case 'dogs':
           return `
-            <!-- Floppy Ear Dog Head -->
             <path d="M ${cx-s*0.6} ${cy-s*0.1} C ${cx-s*1.1} ${cy-s*0.6}, ${cx-s*0.9} ${cy+s*0.7}, ${cx-s*0.5} ${cy+s*0.4}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <path d="M ${cx+s*0.6} ${cy-s*0.1} C ${cx+s*1.1} ${cy-s*0.6}, ${cx+s*0.9} ${cy+s*0.7}, ${cx+s*0.5} ${cy+s*0.4}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <circle cx="${cx}" cy="${cy}" r="${s*0.75}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
@@ -789,7 +796,6 @@
 
         case 'cats':
           return `
-            <!-- Cute Kitten Face -->
             <polygon points="${cx-s*0.75},${cy-s*0.1} ${cx-s*0.6},${cy-s*0.85} ${cx-s*0.15},${cy-s*0.5}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <polygon points="${cx+s*0.75},${cy-s*0.1} ${cx+s*0.6},${cy-s*0.85} ${cx+s*0.15},${cy-s*0.5}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <ellipse cx="${cx}" cy="${cy}" rx="${s*0.8}" ry="${s*0.68}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
@@ -802,7 +808,6 @@
 
         case 'aliens':
           return `
-            <!-- Cute Friendly UFO Spaceship Alien -->
             <path d="M ${cx-s*0.5} ${cy-s*0.1} C ${cx-s*0.5} ${cy-s*0.85}, ${cx+s*0.5} ${cy-s*0.85}, ${cx+s*0.5} ${cy-s*0.1} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <ellipse cx="${cx}" cy="${cy}" rx="${s*0.95}" ry="${s*0.35}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <circle cx="${cx}" cy="${cy-s*0.35}" r="${s*0.1}" fill="#000000" />
@@ -813,20 +818,17 @@
 
         case 'dinos':
           return `
-            <!-- Cute Baby Dinosaur -->
             <path d="M ${cx-s*0.5} ${cy+s*0.6} C ${cx-s*0.8} ${cy-s*0.6}, ${cx+s*0.5} ${cy-s*0.85}, ${cx+s*0.75} ${cy-s*0.1} C ${cx+s*0.9} ${cy+s*0.6}, ${cx} ${cy+s*0.85}, ${cx-s*0.5} ${cy+s*0.6} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <circle cx="${cx+s*0.25}" cy="${cy-s*0.35}" r="${s*0.09}" fill="#000000" />
           `;
 
         case 'stars':
           return `
-            <!-- Cute Star -->
             <polygon points="${createStarPoints(cx, cy, 5, s*0.9, s*0.42)}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
           `;
 
         case 'sports':
           return `
-            <!-- Sports Ball -->
             <circle cx="${cx}" cy="${cy}" r="${s*0.88}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <path d="M ${cx-s*0.88} ${cy} C ${cx-s*0.3} ${cy-s*0.5}, ${cx+s*0.3} ${cy-s*0.5}, ${cx+s*0.88} ${cy}" fill="none" stroke="${b}" stroke-width="2.5" />
             <path d="M ${cx-s*0.88} ${cy} C ${cx-s*0.3} ${cy+s*0.5}, ${cx+s*0.3} ${cy+s*0.5}, ${cx+s*0.88} ${cy}" fill="none" stroke="${b}" stroke-width="2.5" />
@@ -835,7 +837,6 @@
         case 'books':
         default:
           return `
-            <!-- Open Book -->
             <path d="M ${cx-s*0.85} ${cy-s*0.5} L ${cx} ${cy-s*0.3} L ${cx+s*0.85} ${cy-s*0.5} L ${cx+s*0.85} ${cy+s*0.5} L ${cx} ${cy+s*0.7} L ${cx-s*0.85} ${cy+s*0.5} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
             <line x1="${cx}" y1="${cy-s*0.3}" x2="${cx}" y2="${cy+s*0.7}" stroke="${b}" stroke-width="2.5" />
           `;
