@@ -640,7 +640,7 @@
     // Main Renderer: Dynamically updates preview layout & calculates full-page SVG grid dimensions
     function updateView() {
       // 1. Title & Header Text updates
-      displayTitle.textContent = inputTitle.value.toUpperCase() || 'MY REWARD CHALLENGE';
+      displayTitle.textContent = inputTitle.value.toUpperCase() || '';
 
       if (mode === 'handwriting') {
         displayName.textContent = '';
