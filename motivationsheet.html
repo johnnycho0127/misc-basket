@@ -1,312 +1,303 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Printable Kids Reward & Assignment Sheet Builder</title>
-  
-  <!-- Tailwind CSS CDN -->
+  <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Playful Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Bubblegum+Sans&family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          fontFamily: {
-            fredoka: ['Fredoka', 'sans-serif'],
-            bubblegum: ['"Bubblegum Sans"', 'cursive'],
-          }
-        }
-      }
-    }
-  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Quicksand:wght@500;700&display=swap" rel="stylesheet">
 
   <style>
     body {
-      font-family: 'Fredoka', sans-serif;
-      background-color: #F8FAFC;
+      font-family: 'Quicksand', sans-serif;
+    }
+    h1, h2, h3, .font-heading {
+      font-family: 'Fredoka', cursive;
     }
 
-    .handwriting-font {
-      font-family: 'Bubblegum Sans', cursive;
-    }
-
-    /* STRICT SINGLE-PAGE PRINT ENGINE */
+    /* PRINT SPECIFIC STYLING - PERFECT FULL-PAGE FIT */
     @media print {
       @page {
         size: letter portrait;
-        margin: 0.5cm;
+        margin: 0.25in;
       }
-
-      html, body {
-        height: 100% !important;
-        max-height: 100% !important;
-        overflow: hidden !important;
-        background: white !important;
-        color: black !important;
-        padding: 0 !important;
+      
+      body {
+        background: #ffffff !important;
         margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
       }
 
+      /* Hide web controls when printing */
       .no-print {
         display: none !important;
       }
 
-      .print-only-container {
-        width: 100% !important;
-        max-width: 100% !important;
-        height: 100% !important;
-        max-height: 100% !important;
+      .print-wrapper {
         margin: 0 !important;
         padding: 0 !important;
         box-shadow: none !important;
-        display: block !important;
-      }
-
-      .printable-sheet {
-        border: 2px solid #000 !important;
-        box-shadow: none !important;
-        page-break-inside: avoid !important;
-        break-inside: avoid !important;
-        padding: 0.75rem !important;
-        width: 100% !important;
+        border: none !important;
+        width: 100vw !important;
         height: 98vh !important;
         max-height: 98vh !important;
         display: flex !important;
         flex-direction: column !important;
-        justify-content: space-between !important;
+      }
+
+      .sheet-frame {
+        border: 4px solid #0f172a !important;
+        border-radius: 20px !important;
+        padding: 16px !important;
         box-sizing: border-box !important;
+        height: 100% !important;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: space-between !important;
       }
 
-      svg {
-        max-height: 100% !important;
-        width: 100% !important;
+      /* Ensure maximum vector shape rendering */
+      svg text {
+        font-family: 'Fredoka', sans-serif !important;
+        font-weight: 700 !important;
+      }
+
+      .bg-stripes {
+        background-image: none !important;
       }
     }
 
-    ::-webkit-scrollbar {
-      width: 8px;
+    /* Web Preview Canvas styling */
+    .sheet-frame {
+      border: 4px solid #0f172a;
+      border-radius: 24px;
+      box-sizing: border-box;
+      background: #ffffff;
+      position: relative;
     }
-    ::-webkit-scrollbar-track {
-      background: #f1f5f9;
-    }
-    ::-webkit-scrollbar-thumb {
-      background: #cbd5e1;
-      border-radius: 9999px;
+
+    /* Custom range slider styling */
+    input[type=range]::-webkit-slider-thumb {
+      background: #4f46e5;
+      height: 22px;
+      width: 22px;
+      border-radius: 50%;
     }
   </style>
 </head>
-<body class="min-h-screen text-slate-800 flex flex-col justify-between">
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
 
   <!-- TOP HEADER / NAVBAR -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 no-print shadow-sm">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pink-500 via-purple-500 to-indigo-500 flex items-center justify-center p-2 shadow-md text-white font-bold text-xl">
-          🖨️
-        </div>
-        <div>
-          <h1 class="text-xl font-bold bg-gradient-to-r from-pink-600 to-purple-600 bg-clip-text text-transparent">
-            Printable Kids Activity & Reward Sheet Builder
-          </h1>
-          <p class="text-xs text-slate-500 hidden sm:block">Design crisp black-and-white coloring sheets guaranteed to print on 1 single page</p>
-        </div>
+  <header class="no-print bg-white border-b border-slate-200 py-3 px-6 shadow-sm flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center space-x-3">
+      <div class="bg-indigo-600 text-white p-2.5 rounded-2xl shadow-md">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
       </div>
+      <div>
+        <h1 class="text-xl font-bold text-slate-900 leading-tight">Printable Tracker & Reward Builder</h1>
+        <p class="text-xs text-slate-500 font-medium">Create custom assignment coloring & stamp sheets for kids</p>
+      </div>
+    </div>
 
-      <div class="flex items-center space-x-2">
-        <button onclick="window.print()" class="px-6 py-2.5 text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 rounded-xl shadow-lg transition-all transform hover:-translate-y-0.5 flex items-center space-x-2 cursor-pointer">
-          <svg class="w-5 h-5 fill-current" viewBox="0 0 20 20"><path d="M5 4v3H4a2 2 0 00-2 2v6a2 2 0 002 2h1v2a1 1 0 001 1h8a1 1 0 001-1v-2h1a2 2 0 002-2V9a2 2 0 00-2-2h-1V4a1 1 0 00-1-1H6a1 1 0 00-1 1zm2-1h6v3H7V3zm8 12H5v-3h10v3zm-1-6a1 1 0 110-2 1 1 0 010 2z"/></svg>
-          <span>Print 1-Page Worksheet</span>
-        </button>
-      </div>
+    <div class="flex items-center space-x-3">
+      <button onclick="window.print()" class="bg-emerald-500 hover:bg-emerald-600 active:scale-95 transition-all text-white font-bold px-6 py-2.5 rounded-xl shadow-lg shadow-emerald-200 flex items-center space-x-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+        </svg>
+        <span>Print Sheet Now</span>
+      </button>
     </div>
   </header>
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-grow w-full">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+  <!-- MAIN APP CONTENT -->
+  <div class="flex-1 flex flex-col lg:flex-row max-w-7xl w-full mx-auto p-4 lg:p-6 gap-6">
 
-      <!-- LEFT SIDEBAR: CUSTOMIZATION CONTROLS -->
-      <section class="lg:col-span-5 bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-5 no-print overflow-y-auto max-h-[88vh] sticky top-20">
+    <!-- LEFT PANEL: CONTROLS & CUSTOMIZATION (Hidden when printing) -->
+    <div class="no-print w-full lg:w-96 bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col gap-5 h-fit">
+      
+      <div class="border-b border-slate-100 pb-3">
+        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+          <span>⚙️ Customization Options</span>
+        </h2>
+        <p class="text-xs text-slate-500">Tailor the sheet for your child's goal</p>
+      </div>
+
+      <!-- 1. HEADER FIELD SETTINGS -->
+      <div class="space-y-3">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Header Content</label>
         
-        <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
-          <h2 class="text-lg font-bold text-slate-800 flex items-center space-x-2">
-            <span>⚙️</span>
-            <span>Sheet Customizer</span>
-          </h2>
-          <span class="text-xs bg-emerald-100 text-emerald-700 font-bold px-2.5 py-1 rounded-full">Guaranteed 1-Page</span>
+        <div>
+          <label class="text-xs font-semibold text-slate-600 block mb-1">Sheet Title / Challenge Name</label>
+          <input type="text" id="inputTitle" value="20 BOOK CHALLENGE" placeholder="e.g., Summer Reading Challenge" class="w-full text-sm font-bold border border-slate-300 rounded-xl px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none">
         </div>
 
-        <!-- 1. Theme Selection -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">1. Select Theme</label>
-            <span class="text-[11px] text-pink-600 font-semibold">Easy-to-Color Line Art</span>
-          </div>
-          
-          <div class="grid grid-cols-3 sm:grid-cols-4 gap-2" id="theme-buttons-container">
-            <!-- Dynamic Theme Buttons -->
-          </div>
-        </div>
-
-        <!-- Custom Image Line Art Converter Box -->
-        <div class="bg-indigo-50/70 p-4 rounded-2xl border border-indigo-200 space-y-3">
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-bold text-indigo-900 flex items-center space-x-1">
-              <span>📷</span>
-              <span>Upload Custom Photo Line Art</span>
-            </span>
-            <span class="text-[10px] bg-indigo-200 text-indigo-800 font-bold px-2 py-0.5 rounded-full">Sketch Mode</span>
-          </div>
-          <p class="text-[11px] text-indigo-700 leading-snug">
-            Upload any photo/character! We convert it to a crisp pencil outline so children can color inside without dark fills.
-          </p>
-          
-          <div class="flex items-center space-x-2">
-            <input type="file" id="image-upload" accept="image/*" onchange="handleImageUpload(event)" class="hidden" />
-            <button onclick="document.getElementById('image-upload').click()" class="w-full py-2.5 px-3 text-xs font-bold text-indigo-700 bg-white border border-indigo-300 hover:bg-indigo-100 rounded-xl transition-all shadow-sm flex items-center justify-center space-x-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></path></svg>
-              <span>Upload Photo...</span>
+        <!-- Mode Toggle: Handwriting vs Typed -->
+        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-2">
+          <span class="text-xs font-bold text-slate-700 block">Fill-in Mode</span>
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btnModeHandwriting" onclick="setMode('handwriting')" class="py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-sm">
+              ✍️ Blank Handwriting
             </button>
-            <button id="btn-remove-custom-img" onclick="removeCustomImage()" class="hidden py-2.5 px-3 text-xs font-bold text-red-500 bg-white border border-red-200 hover:bg-red-50 rounded-xl transition-all">
-              ✕
+            <button id="btnModeTyped" onclick="setMode('typed')" class="py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100">
+              💻 Typed Text
             </button>
           </div>
-
-          <!-- Fine-tune controls for edge detection threshold -->
-          <div id="custom-image-controls" class="hidden space-y-3 pt-2 border-t border-indigo-200">
-            <div>
-              <div class="flex justify-between items-center text-[11px] font-semibold text-indigo-900 mb-1">
-                <span>Line Threshold (Cleaner Outline)</span>
-                <span id="threshold-val-text">30</span>
-              </div>
-              <input type="range" id="edge-threshold" min="10" max="80" value="30" oninput="processUploadedImage()" class="w-full accent-indigo-600" />
-            </div>
-            
-            <div>
-              <div class="flex justify-between items-center text-[11px] font-semibold text-indigo-900 mb-1">
-                <span>Line Thickness</span>
-                <span id="thickness-val-text">1.5</span>
-              </div>
-              <input type="range" id="line-thickness" min="1" max="4" step="0.5" value="1.5" oninput="processUploadedImage()" class="w-full accent-indigo-600" />
-            </div>
-          </div>
         </div>
 
-        <!-- 2. Target Count Slider & Numbering -->
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-100 space-y-3">
-          <div class="flex items-center justify-between">
-            <label for="input-count" class="text-xs font-bold uppercase tracking-wider text-slate-500">2. Total Shape Count (1 - 100)</label>
-            <input type="number" id="input-count-number" min="1" max="100" value="20" onchange="updateCount(this.value)" class="w-16 px-2 py-1 text-center font-bold text-pink-600 bg-white border border-slate-200 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-pink-400" />
-          </div>
-          <input type="range" id="input-count" min="1" max="100" value="20" oninput="updateCount(this.value)" class="w-full accent-pink-500 cursor-pointer" />
-          
-          <div class="flex items-center justify-between pt-1">
-            <span class="text-xs font-semibold text-slate-600">Print Numbers Inside Shapes?</span>
-            <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" id="toggle-numbers" checked onchange="renderSheet()" class="sr-only peer">
-              <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-pink-500"></div>
-            </label>
-          </div>
+        <!-- Typed values container (shown only in typed mode) -->
+        <div id="typedInputsGroup" class="space-y-2 hidden">
+          <input type="text" id="inputName" placeholder="Child's Name (optional)" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-1.5">
+          <input type="text" id="inputDate" placeholder="Date / Month (optional)" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-1.5">
+          <input type="text" id="inputGoal" placeholder="Goal Description" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-1.5">
+          <input type="text" id="inputReward" placeholder="Reward Description" class="w-full text-xs border border-slate-200 rounded-xl px-3 py-1.5">
         </div>
+      </div>
 
-        <!-- 3. Header Space Mode -->
-        <div class="space-y-3 pt-2 border-t border-slate-100">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">3. Header Space Mode</label>
-            <div class="flex items-center space-x-1 bg-slate-100 p-1 rounded-xl">
-              <button id="mode-btn-handwriting" onclick="setHeaderMode('handwriting')" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-pink-600">
-                ✏️ Blank Space (Handwriting)
-              </button>
-              <button id="mode-btn-typed" onclick="setHeaderMode('typed')" class="px-2.5 py-1 text-xs font-bold rounded-lg transition-all text-slate-500">
-                ⌨️ Pre-filled Text
-              </button>
-            </div>
-          </div>
-
-          <div id="typed-inputs-container" class="space-y-2.5">
-            <div>
-              <label class="text-xs font-medium text-slate-600">Title Header</label>
-              <input type="text" id="input-title" value="20 BOOK READING CHALLENGE" oninput="renderSheet()" class="w-full px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-400 font-semibold" />
-            </div>
-
-            <div class="grid grid-cols-2 gap-2">
-              <div>
-                <label class="text-xs font-medium text-slate-600">Child Name</label>
-                <input type="text" id="input-name" value="William Davis" oninput="renderSheet()" class="w-full px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-400" />
-              </div>
-              <div>
-                <label class="text-xs font-medium text-slate-600">Month / Date</label>
-                <input type="text" id="input-date" value="January" oninput="renderSheet()" class="w-full px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-400" />
-              </div>
-            </div>
-
-            <div>
-              <label class="text-xs font-medium text-slate-600">Goal Description</label>
-              <input type="text" id="input-goal" value="Finish my homework before dinner time." oninput="renderSheet()" class="w-full px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-400" />
-            </div>
-
-            <div>
-              <label class="text-xs font-medium text-slate-600">Reward Wish</label>
-              <input type="text" id="input-reward" value="Trip to the Ice Cream Shop!" oninput="renderSheet()" class="w-full px-3 py-1.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-pink-400" />
-            </div>
-          </div>
+      <!-- 2. NUMBER OF SHAPES -->
+      <div class="space-y-2">
+        <div class="flex justify-between items-center">
+          <label class="text-xs font-bold uppercase tracking-wider text-slate-500">Shape Count</label>
+          <span id="countDisplay" class="bg-indigo-100 text-indigo-700 font-bold px-2.5 py-0.5 rounded-full text-xs">20 Shapes</span>
         </div>
+        <input type="range" id="inputCount" min="1" max="100" value="20" class="w-full accent-indigo-600 cursor-pointer">
+        <div class="flex justify-between text-[10px] font-bold text-slate-400 px-1">
+          <span>1</span>
+          <span>25</span>
+          <span>50</span>
+          <span>75</span>
+          <span>100</span>
+        </div>
+      </div>
 
-      </section>
+      <!-- 3. THEME SELECTION -->
+      <div class="space-y-2">
+        <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Choose Shape Theme</label>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="selectTheme('puppy')" class="theme-btn p-2 rounded-xl border-2 border-indigo-600 bg-indigo-50/50 flex flex-col items-center gap-1 transition-all" data-theme="puppy">
+            <span class="text-xl">🐶</span>
+            <span class="text-[11px] font-bold text-slate-700">Puppies</span>
+          </button>
+          <button onclick="selectTheme('kitten')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="kitten">
+            <span class="text-xl">🐱</span>
+            <span class="text-[11px] font-bold text-slate-700">Kittens</span>
+          </button>
+          <button onclick="selectTheme('book')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="book">
+            <span class="text-xl">📚</span>
+            <span class="text-[11px] font-bold text-slate-700">Books</span>
+          </button>
+          <button onclick="selectTheme('alien')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="alien">
+            <span class="text-xl">👾</span>
+            <span class="text-[11px] font-bold text-slate-700">UFO Alien</span>
+          </button>
+          <button onclick="selectTheme('dino')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="dino">
+            <span class="text-xl">🦖</span>
+            <span class="text-[11px] font-bold text-slate-700">Dinos</span>
+          </button>
+          <button onclick="selectTheme('star')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="star">
+            <span class="text-xl">⭐</span>
+            <span class="text-[11px] font-bold text-slate-700">Stars</span>
+          </button>
+          <button onclick="selectTheme('sports')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="sports">
+            <span class="text-xl">⚽</span>
+            <span class="text-[11px] font-bold text-slate-700">Sports</span>
+          </button>
+          <button onclick="selectTheme('grape')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="grape">
+            <span class="text-xl">🍇</span>
+            <span class="text-[11px] font-bold text-slate-700">Grapes</span>
+          </button>
+          <button onclick="selectTheme('custom')" class="theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all" data-theme="custom">
+            <span class="text-xl">📷</span>
+            <span class="text-[11px] font-bold text-slate-700">Custom Photo</span>
+          </button>
+        </div>
+      </div>
 
-      <!-- RIGHT SIDE: LIVE PRINTABLE SHEET PREVIEW -->
-      <section class="lg:col-span-7 flex flex-col items-center justify-start print-only-container w-full">
+      <!-- 4. CUSTOM PHOTO UPLOAD OPTION -->
+      <div id="customImageSection" class="hidden bg-slate-50 p-3 rounded-2xl border border-slate-200 space-y-3">
+        <label class="text-xs font-bold text-slate-700 block">Upload Custom Image</label>
+        <p class="text-[11px] text-slate-500 leading-tight">Upload any photo or illustration. Our line-art converter turns it into a clear sketch outline ready for coloring!</p>
+        <input type="file" id="imageUploader" accept="image/*" class="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-indigo-600 file:text-white hover:file:bg-indigo-700 cursor-pointer">
         
-        <div id="printable-area" class="printable-sheet bg-white w-full max-w-[680px] h-[880px] rounded-2xl shadow-xl border-2 border-slate-900 p-5 sm:p-6 flex flex-col justify-between relative transition-all duration-300">
+        <div id="imageControls" class="space-y-2 hidden pt-2 border-t border-slate-200">
+          <div class="flex justify-between items-center text-[11px] font-bold text-slate-600">
+            <span>Line Sketch Thickness</span>
+            <span id="thresholdVal">35</span>
+          </div>
+          <input type="range" id="inputThreshold" min="10" max="80" value="35" class="w-full accent-indigo-600">
+        </div>
+      </div>
+
+      <!-- NUMBERING TOGGLE -->
+      <div class="flex items-center justify-between bg-slate-50 p-3 rounded-2xl border border-slate-200">
+        <span class="text-xs font-bold text-slate-700">Show Numbers (1, 2, 3...)</span>
+        <label class="relative inline-flex items-center cursor-pointer">
+          <input type="checkbox" id="toggleNumbers" checked class="sr-only peer">
+          <div class="w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- RIGHT PANEL: REAL-TIME PRINTABLE PREVIEW SHEET -->
+    <div class="flex-1 flex flex-col items-center justify-center">
+      
+      <!-- Printable Sheet Wrapper -->
+      <div class="print-wrapper w-full max-w-[720px] aspect-[1/1.29] bg-white shadow-xl rounded-2xl p-4 lg:p-6 flex flex-col justify-between">
+        
+        <div class="sheet-frame p-4 lg:p-5 flex-1 flex flex-col justify-between overflow-hidden">
           
-          <!-- TOP HEADER SECTION -->
-          <div class="w-full space-y-2">
+          <!-- TOP HEADER AREA -->
+          <div class="space-y-2.5 mb-2">
             
-            <!-- Title Banner -->
-            <div id="sheet-title-banner" class="text-center py-1.5 px-3 rounded-xl border-2 border-slate-900 bg-white relative">
-              <div id="display-title-container"></div>
+            <!-- SHEET TITLE / ASSIGNMENT -->
+            <div class="border-2 border-slate-900 rounded-xl px-4 py-2 flex items-center justify-between min-h-[48px] bg-white">
+              <span class="text-xs font-extrabold uppercase tracking-wider text-slate-500 whitespace-nowrap mr-2">CHALLENGE TITLE:</span>
+              <div id="displayTitleContainer" class="flex-1 text-right lg:text-left">
+                <span id="displayTitle" class="font-heading font-extrabold text-lg lg:text-xl text-slate-900 tracking-wide">20 BOOK CHALLENGE</span>
+              </div>
             </div>
 
-            <!-- Header Info Grid -->
-            <div id="sheet-info-grid" class="grid grid-cols-12 gap-2 text-sm">
-              <div class="col-span-7 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[44px]">
-                <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">NAME:</span>
-                <div id="display-name" class="flex-grow flex items-center"></div>
+            <!-- NAME & DATE ROW -->
+            <div class="grid grid-cols-3 gap-2.5">
+              <div class="col-span-2 border-2 border-slate-900 rounded-xl px-3 py-1.5 flex items-center min-h-[42px] bg-white">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mr-2 whitespace-nowrap">NAME:</span>
+                <span id="displayName" class="text-sm font-bold text-slate-900 flex-1"></span>
               </div>
-              
-              <div class="col-span-5 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[44px]">
-                <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">DATE:</span>
-                <div id="display-date" class="flex-grow flex items-center"></div>
+              <div class="col-span-1 border-2 border-slate-900 rounded-xl px-3 py-1.5 flex items-center min-h-[42px] bg-white">
+                <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mr-2 whitespace-nowrap">DATE:</span>
+                <span id="displayDate" class="text-sm font-bold text-slate-900 flex-1"></span>
               </div>
+            </div>
 
-              <div class="col-span-12 border-2 border-slate-900 rounded-xl p-2 font-bold flex items-center space-x-2 min-h-[46px]">
-                <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">MY GOAL:</span>
-                <div id="display-goal" class="flex-grow flex items-center"></div>
-              </div>
+            <!-- GOAL ROW -->
+            <div class="border-2 border-slate-900 rounded-xl px-3 py-1.5 flex items-center min-h-[42px] bg-white">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mr-2 whitespace-nowrap">MY GOAL:</span>
+              <span id="displayGoal" class="text-sm font-bold text-slate-900 flex-1"></span>
             </div>
 
           </div>
 
-          <!-- SHAPES CANVAS AREA (STRICT FLEX-FIT SINGLE PAGE CANVAS) -->
-          <div id="target-shapes-container" class="my-1 flex-grow flex items-center justify-center w-full min-h-0 overflow-hidden relative">
-            <!-- Dynamic SVG content -->
+          <!-- DYNAMIC GRAPHICS & COLORING SHAPES CANVAS -->
+          <div id="svgCanvasContainer" class="flex-1 w-full my-auto flex items-center justify-center min-h-0 overflow-hidden py-1">
+            <!-- SVG shapes dynamically rendered here -->
           </div>
 
-          <!-- BOTTOM REWARD BOX -->
-          <div class="w-full space-y-1.5">
-            <div id="sheet-reward-box" class="border-2 border-slate-900 rounded-xl p-2.5 bg-white flex items-center justify-between min-h-[46px]">
-              <div class="flex items-center space-x-2 w-full">
-                <span class="text-xl shrink-0">🎁</span>
-                <span class="text-xs font-black uppercase text-slate-900 tracking-wider shrink-0">REWARD WISH:</span>
-                <div id="display-reward" class="flex-grow flex items-center"></div>
-              </div>
+          <!-- BOTTOM REWARD WISH AREA -->
+          <div class="space-y-1 mt-2">
+            <div class="border-2 border-slate-900 rounded-xl px-3 py-1.5 flex items-center min-h-[42px] bg-white">
+              <span class="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 mr-2 whitespace-nowrap">🎁 REWARD WISH:</span>
+              <span id="displayReward" class="text-sm font-bold text-slate-900 flex-1"></span>
             </div>
-
-            <div class="flex justify-between items-center text-[9px] sm:text-[10px] text-slate-800 font-extrabold uppercase tracking-widest pt-1 border-t border-slate-300">
+            
+            <div class="flex justify-between items-center text-[10px] font-bold text-slate-400 px-1 pt-1 border-t border-slate-100">
               <span>COLOR OR STAMP EACH SHAPE WHEN COMPLETED!</span>
               <span>YOU CAN DO IT! ⭐</span>
             </div>
@@ -314,555 +305,429 @@
 
         </div>
 
-      </section>
+      </div>
 
     </div>
-  </main>
 
-  <!-- Offscreen Canvas for Line Sketch Processing -->
-  <canvas id="offscreen-canvas" class="hidden"></canvas>
+  </div>
 
+  <!-- Offscreen canvas for processing uploaded custom images to black/white sketch lines -->
+  <canvas id="procCanvas" class="hidden"></canvas>
+
+  <!-- APP JAVASCRIPT ENGINE -->
   <script>
-    const themes = [
-      { id: 'dogs', name: 'Cute Puppies', icon: '🐶' },
-      { id: 'cats', name: 'Cute Kittens', icon: '🐱' },
-      { id: 'aliens', name: 'Friendly UFO', icon: '🛸' },
-      { id: 'dinos', name: 'Little Dino', icon: '🦖' },
-      { id: 'grapes', name: 'Grape Cluster', icon: '🍇' },
-      { id: 'jar', name: 'Reward Jar', icon: '🫙' },
-      { id: 'stars', name: 'Shining Stars', icon: '⭐' },
-      { id: 'sports', name: 'Sports Balls', icon: '⚽' },
-      { id: 'books', name: 'Book Grid', icon: '📚' },
-      { id: 'custom', name: 'Photo Outline', icon: '📷' }
-    ];
+    // State management
+    let mode = 'handwriting'; // 'handwriting' or 'typed'
+    let selectedTheme = 'puppy';
+    let shapeCount = 20;
+    let showNumbers = true;
+    let customImageOutlineDataUrl = null;
+    let uploadedImageElement = null;
 
-    const state = {
-      theme: 'dogs',
-      headerMode: 'handwriting',
-      count: 20,
-      showNumbers: true,
-      title: '20 BOOK READING CHALLENGE',
-      name: 'William Davis',
-      date: 'January',
-      goal: 'Finish my homework before dinner time.',
-      reward: 'Trip to the Ice Cream Shop!',
-      rawImageObj: null,
-      customOutlineDataUrl: null
-    };
+    // DOM Elements
+    const inputTitle = document.getElementById('inputTitle');
+    const inputName = document.getElementById('inputName');
+    const inputDate = document.getElementById('inputDate');
+    const inputGoal = document.getElementById('inputGoal');
+    const inputReward = document.getElementById('inputReward');
+    const inputCount = document.getElementById('inputCount');
+    const countDisplay = document.getElementById('countDisplay');
+    const toggleNumbers = document.getElementById('toggleNumbers');
+    
+    const displayTitle = document.getElementById('displayTitle');
+    const displayName = document.getElementById('displayName');
+    const displayDate = document.getElementById('displayDate');
+    const displayGoal = document.getElementById('displayGoal');
+    const displayReward = document.getElementById('displayReward');
 
-    window.onload = function() {
-      renderThemeButtons();
-      renderSheet();
-    };
+    const btnModeHandwriting = document.getElementById('btnModeHandwriting');
+    const btnModeTyped = document.getElementById('btnModeTyped');
+    const typedInputsGroup = document.getElementById('typedInputsGroup');
+    const customImageSection = document.getElementById('customImageSection');
+    const imageUploader = document.getElementById('imageUploader');
+    const imageControls = document.getElementById('imageControls');
+    const inputThreshold = document.getElementById('inputThreshold');
+    const thresholdVal = document.getElementById('thresholdVal');
+    const svgCanvasContainer = document.getElementById('svgCanvasContainer');
 
-    function renderThemeButtons() {
-      const container = document.getElementById('theme-buttons-container');
-      container.innerHTML = '';
-      themes.forEach(t => {
-        const btn = document.createElement('button');
-        btn.id = `theme-btn-${t.id}`;
-        btn.onclick = () => setTheme(t.id);
-        btn.className = `border-2 border-slate-200 rounded-2xl p-2 text-center hover:border-pink-400 transition-all flex flex-col items-center justify-center space-y-1 ${state.theme === t.id ? 'border-pink-500 bg-pink-50 font-bold' : ''}`;
-        btn.innerHTML = `
-          <span class="text-xl">${t.icon}</span>
-          <span class="text-[11px] font-semibold leading-tight">${t.name}</span>
-        `;
-        container.appendChild(btn);
+    // Initialize listeners
+    function init() {
+      inputTitle.addEventListener('input', updateView);
+      inputName.addEventListener('input', updateView);
+      inputDate.addEventListener('input', updateView);
+      inputGoal.addEventListener('input', updateView);
+      inputReward.addEventListener('input', updateView);
+
+      inputCount.addEventListener('input', (e) => {
+        shapeCount = parseInt(e.target.value);
+        countDisplay.textContent = `${shapeCount} Shapes`;
+        updateView();
       });
+
+      toggleNumbers.addEventListener('change', (e) => {
+        showNumbers = e.target.checked;
+        updateView();
+      });
+
+      imageUploader.addEventListener('change', handleImageUpload);
+      inputThreshold.addEventListener('input', (e) => {
+        thresholdVal.textContent = e.target.value;
+        if (uploadedImageElement) {
+          processImageToOutline(uploadedImageElement, parseInt(e.target.value));
+        }
+      });
+
+      window.addEventListener('resize', updateView);
+      updateView();
     }
 
-    function setTheme(themeId) {
-      if (themeId === 'custom' && !state.customOutlineDataUrl) {
-        document.getElementById('image-upload').click();
-        return;
+    // Toggle between blank handwriting & typed mode
+    function setMode(newMode) {
+      mode = newMode;
+      if (mode === 'handwriting') {
+        btnModeHandwriting.className = 'py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-sm';
+        btnModeTyped.className = 'py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100';
+        typedInputsGroup.classList.add('hidden');
+      } else {
+        btnModeTyped.className = 'py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-indigo-600 text-white shadow-sm';
+        btnModeHandwriting.className = 'py-1.5 px-3 rounded-xl text-xs font-bold transition-all bg-white text-slate-600 border border-slate-200 hover:bg-slate-100';
+        typedInputsGroup.classList.remove('hidden');
       }
-      state.theme = themeId;
-      renderThemeButtons();
-      renderSheet();
+      updateView();
     }
 
-    function setHeaderMode(mode) {
-      state.headerMode = mode;
-      document.getElementById('mode-btn-handwriting').className = mode === 'handwriting' ? 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-pink-600' : 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all text-slate-500';
-      document.getElementById('mode-btn-typed').className = mode === 'typed' ? 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all bg-white shadow-sm text-pink-600' : 'px-2.5 py-1 text-xs font-bold rounded-lg transition-all text-slate-500';
-      renderSheet();
+    // Select theme option
+    function selectTheme(themeKey) {
+      selectedTheme = themeKey;
+      document.querySelectorAll('.theme-btn').forEach(btn => {
+        if (btn.dataset.theme === themeKey) {
+          btn.className = 'theme-btn p-2 rounded-xl border-2 border-indigo-600 bg-indigo-50/50 flex flex-col items-center gap-1 transition-all';
+        } else {
+          btn.className = 'theme-btn p-2 rounded-xl border border-slate-200 hover:border-slate-300 flex flex-col items-center gap-1 transition-all';
+        }
+      });
+
+      if (themeKey === 'custom') {
+        customImageSection.classList.remove('hidden');
+      } else {
+        customImageSection.classList.add('hidden');
+      }
+
+      updateView();
     }
 
-    function updateCount(val) {
-      let num = parseInt(val) || 1;
-      num = Math.max(1, Math.min(100, num));
-      state.count = num;
-      document.getElementById('input-count').value = num;
-      document.getElementById('input-count-number').value = num;
-      renderSheet();
-    }
-
+    // Handle uploaded custom photo
     function handleImageUpload(e) {
       const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-          const img = new Image();
-          img.onload = function() {
-            state.rawImageObj = img;
-            document.getElementById('btn-remove-custom-img').classList.remove('hidden');
-            document.getElementById('custom-image-controls').classList.remove('hidden');
-            processUploadedImage();
-          };
-          img.src = event.target.result;
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          uploadedImageElement = img;
+          imageControls.classList.remove('hidden');
+          processImageToOutline(img, parseInt(inputThreshold.value));
         };
-        reader.readAsDataURL(file);
-      }
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
     }
 
-    function removeCustomImage() {
-      state.rawImageObj = null;
-      state.customOutlineDataUrl = null;
-      document.getElementById('btn-remove-custom-img').classList.add('hidden');
-      document.getElementById('custom-image-controls').classList.add('hidden');
-      if (state.theme === 'custom') state.theme = 'dogs';
-      renderThemeButtons();
-      renderSheet();
-    }
-
-    function processUploadedImage() {
-      if (!state.rawImageObj) return;
-
-      const canvas = document.getElementById('offscreen-canvas');
+    // High-quality Luminance Gradient-Magnitude Edge Extraction Algorithm
+    // Converts photos into clean black-and-white vector-style line art outlines
+    function processImageToOutline(img, sensitivity) {
+      const canvas = document.getElementById('procCanvas');
       const ctx = canvas.getContext('2d');
-      const threshold = parseInt(document.getElementById('edge-threshold').value) || 30;
-      const thickness = parseFloat(document.getElementById('line-thickness').value) || 1.5;
+      
+      const size = 300;
+      canvas.width = size;
+      canvas.height = size;
 
-      document.getElementById('threshold-val-text').textContent = threshold;
-      document.getElementById('thickness-val-text').textContent = thickness;
-
-      const maxDim = 400;
-      let w = state.rawImageObj.width;
-      let h = state.rawImageObj.height;
-      if (w > maxDim || h > maxDim) {
-        if (w > h) {
-          h = Math.round((h * maxDim) / w);
-          w = maxDim;
-        } else {
-          w = Math.round((w * maxDim) / h);
-          h = maxDim;
-        }
-      }
-
-      canvas.width = w;
-      canvas.height = h;
-
-      ctx.drawImage(state.rawImageObj, 0, 0, w, h);
-      const imgData = ctx.getImageData(0, 0, w, h);
+      // Draw original image scaled to square canvas
+      ctx.drawImage(img, 0, 0, size, size);
+      const imgData = ctx.getImageData(0, 0, size, size);
       const data = imgData.data;
 
-      const gray = new Float32Array(w * h);
+      // Convert to grayscale matrix
+      const gray = new Float32Array(size * size);
       for (let i = 0; i < data.length; i += 4) {
         gray[i / 4] = 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
       }
 
-      const output = ctx.createImageData(w, h);
+      // Output image buffer (White canvas background)
+      const output = ctx.createImageData(size, size);
       const outData = output.data;
+      for (let i = 0; i < outData.length; i += 4) {
+        outData[i] = 255;
+        outData[i + 1] = 255;
+        outData[i + 2] = 255;
+        outData[i + 3] = 255;
+      }
 
-      for (let y = 1; y < h - 1; y++) {
-        for (let x = 1; x < w - 1; x++) {
-          const idx = y * w + x;
-          const gx = Math.abs(gray[idx + 1] - gray[idx - 1]);
-          const gy = Math.abs(gray[idx + w] - gray[idx - w]);
-          const mag = (gx + gy) * thickness;
+      // Simple Sobel edge filter to isolate key outline curves
+      const thresh = sensitivity;
+      for (let y = 1; y < size - 1; y++) {
+        for (let x = 1; x < size - 1; x++) {
+          const idx = y * size + x;
 
-          const isLine = mag > threshold;
-          const outIdx = idx * 4;
+          const gx =
+            -1 * gray[(y - 1) * size + (x - 1)] + 1 * gray[(y - 1) * size + (x + 1)] +
+            -2 * gray[y * size + (x - 1)]       + 2 * gray[y * size + (x + 1)] +
+            -1 * gray[(y + 1) * size + (x - 1)] + 1 * gray[(y + 1) * size + (x + 1)];
 
-          if (isLine) {
-            outData[outIdx] = 0;       // R
-            outData[outIdx + 1] = 0;   // G
-            outData[outIdx + 2] = 0;   // B
-            outData[outIdx + 3] = 255; // Alpha
-          } else {
-            outData[outIdx] = 255;     // R
-            outData[outIdx + 1] = 255; // G
-            outData[outIdx + 2] = 255; // B
-            outData[outIdx + 3] = 0;   // Transparent interior
+          const gy =
+            -1 * gray[(y - 1) * size + (x - 1)] - 2 * gray[(y - 1) * size + x] - 1 * gray[(y - 1) * size + (x + 1)] +
+             1 * gray[(y + 1) * size + (x - 1)] + 2 * gray[(y + 1) * size + x] + 1 * gray[(y + 1) * size + (x + 1)];
+
+          const mag = Math.sqrt(gx * gx + gy * gy);
+
+          // If edge gradient is strong enough, render dark black stroke
+          if (mag > thresh) {
+            const outIdx = idx * 4;
+            outData[outIdx] = 15;     // Red
+            outData[outIdx + 1] = 23; // Green
+            outData[outIdx + 2] = 42; // Blue
           }
         }
       }
 
       ctx.putImageData(output, 0, 0);
-      state.customOutlineDataUrl = canvas.toDataURL();
-      state.theme = 'custom';
-      renderThemeButtons();
-      renderSheet();
+      customImageOutlineDataUrl = canvas.toDataURL();
+      updateView();
     }
 
-    function renderSheet() {
-      state.title = document.getElementById('input-title').value;
-      state.name = document.getElementById('input-name').value;
-      state.date = document.getElementById('input-date').value;
-      state.goal = document.getElementById('input-goal').value;
-      state.reward = document.getElementById('input-reward').value;
-      state.showNumbers = document.getElementById('toggle-numbers').checked;
+    // SVG Vector Path Generators for Themes (Thick line art with generous coloring area)
+    function getThemeSvgShape(theme, num, x, y, size) {
+      const strokeWidth = 3.5;
+      const innerSize = size * 0.88;
+      const centerOffset = (size - innerSize) / 2;
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+      const radius = innerSize / 2;
 
-      // Render Title Banner
-      const titleContainer = document.getElementById('display-title-container');
-      if (state.headerMode === 'handwriting') {
-        titleContainer.innerHTML = `
-          <div class="h-6 w-full flex items-center justify-between px-2">
-            <span class="text-xs font-black text-slate-400 uppercase tracking-widest">CHALLENGE TITLE / ASSIGNMENT:</span>
-            <span class="text-[11px] font-bold text-slate-300">✏️ Blank Handwriting Space</span>
-          </div>
-        `;
-      } else {
-        titleContainer.innerHTML = `
-          <h2 class="text-lg sm:text-xl font-black tracking-wider text-slate-900 uppercase">
-            ${state.title || 'ASSIGNMENT REWARD SHEET'}
-          </h2>
-        `;
-      }
+      let pathContent = '';
 
-      // Render Name, Date, Goal & Reward
-      const displayName = document.getElementById('display-name');
-      const displayDate = document.getElementById('display-date');
-      const displayGoal = document.getElementById('display-goal');
-      const displayReward = document.getElementById('display-reward');
-
-      if (state.headerMode === 'handwriting') {
-        displayName.innerHTML = '<div class="w-full h-full"></div>';
-        displayDate.innerHTML = '<div class="w-full h-full"></div>';
-        displayGoal.innerHTML = '<div class="w-full h-full"></div>';
-        displayReward.innerHTML = '<div class="w-full h-full"></div>';
-      } else {
-        displayName.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.name}</span>`;
-        displayDate.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.date}</span>`;
-        displayGoal.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.goal}</span>`;
-        displayReward.innerHTML = `<span class="handwriting-font text-base text-slate-900 font-bold">${state.reward}</span>`;
-      }
-
-      // Render Target Shapes Container
-      const shapesContainer = document.getElementById('target-shapes-container');
-      shapesContainer.innerHTML = '';
-
-      if (state.theme === 'grapes') {
-        shapesContainer.appendChild(generateGrapeClusterSVG());
-      } else if (state.theme === 'jar') {
-        shapesContainer.appendChild(generateStarJarSVG());
-      } else {
-        shapesContainer.appendChild(generateFullWidthGridSVG());
-      }
-    }
-
-    function generateGrapeClusterSVG() {
-      const count = state.count;
-
-      let rows = [];
-      let remaining = count;
-      let currentRowSize = Math.ceil(Math.sqrt(count * 2.2));
-
-      while (remaining > 0) {
-        let itemsInRow = Math.min(remaining, currentRowSize);
-        rows.push(itemsInRow);
-        remaining -= itemsInRow;
-        if (currentRowSize > 1) currentRowSize--;
-      }
-
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 600 580");
-      svg.setAttribute("class", "w-full h-full max-h-[480px]");
-
-      // Top Leaf
-      const leafGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      leafGroup.innerHTML = `
-        <path d="M 300 110 C 200 10, 90 50, 150 150 C 190 170, 250 160, 300 110 Z" fill="#FFFFFF" stroke="#000000" stroke-width="3.5" />
-        <path d="M 300 110 C 400 10, 510 50, 450 150 C 410 170, 350 160, 300 110 Z" fill="#FFFFFF" stroke="#000000" stroke-width="3.5" />
-        <path d="M 300 110 Q 300 40 330 20" fill="none" stroke="#000000" stroke-width="5" stroke-linecap="round" />
-      `;
-      svg.appendChild(leafGroup);
-
-      const grapesGroup = document.createElementNS("http://www.w3.org/2000/svg", "g");
-      let itemIndex = 1;
-      let startY = 155;
-
-      const radius = Math.min(50, Math.max(20, 360 / (rows.length + 1)));
-      const rowSpacing = radius * 1.65;
-
-      rows.forEach((rowSize, rowIndex) => {
-        const y = startY + (rowIndex * rowSpacing);
-        const rowWidth = rowSize * (radius * 1.85);
-        const startX = 300 - (rowWidth / 2) + radius;
-
-        for (let col = 0; col < rowSize; col++) {
-          const x = startX + (col * radius * 1.85);
-          const currentIdx = itemIndex;
-
-          const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-          const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-          circle.setAttribute("cx", x);
-          circle.setAttribute("cy", y);
-          circle.setAttribute("r", radius);
-          circle.setAttribute("stroke", "#000000");
-          circle.setAttribute("stroke-width", "3.5");
-          circle.setAttribute("fill", "#FFFFFF");
-          g.appendChild(circle);
-
-          if (state.showNumbers) {
-            const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            text.setAttribute("x", x);
-            text.setAttribute("y", y + (radius * 0.35));
-            text.setAttribute("text-anchor", "middle");
-            text.setAttribute("font-size", radius * 0.85);
-            text.setAttribute("font-weight", "bold");
-            text.setAttribute("fill", "#000000");
-            text.textContent = currentIdx;
-            g.appendChild(text);
-          }
-
-          grapesGroup.appendChild(g);
-          itemIndex++;
-        }
-      });
-
-      svg.appendChild(grapesGroup);
-      return svg;
-    }
-
-    function generateStarJarSVG() {
-      const count = state.count;
-
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-      svg.setAttribute("viewBox", "0 0 600 580");
-      svg.setAttribute("class", "w-full h-full max-h-[480px]");
-
-      // Jar Outline
-      const jar = document.createElementNS("http://www.w3.org/2000/svg", "path");
-      jar.setAttribute("d", "M 130 110 L 470 110 Q 480 110 480 130 L 480 150 C 545 240 545 500 480 550 C 435 580 165 580 120 550 C 55 500 55 240 120 150 L 120 130 Q 120 110 130 110 Z");
-      jar.setAttribute("fill", "#FFFFFF");
-      jar.setAttribute("stroke", "#000000");
-      jar.setAttribute("stroke-width", "4.5");
-      svg.appendChild(jar);
-
-      // Lid
-      const lid = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-      lid.setAttribute("x", "110");
-      lid.setAttribute("y", "80");
-      lid.setAttribute("width", "380");
-      lid.setAttribute("height", "35");
-      lid.setAttribute("rx", "8");
-      lid.setAttribute("fill", "#FFFFFF");
-      lid.setAttribute("stroke", "#000000");
-      lid.setAttribute("stroke-width", "4");
-      svg.appendChild(lid);
-
-      const cols = Math.min(7, Math.ceil(Math.sqrt(count * 1.3)));
-      const rows = Math.ceil(count / cols);
-
-      const startX = 135;
-      const endX = 465;
-      const startY = 165;
-      const endY = 530;
-
-      const cellW = (endX - startX) / cols;
-      const cellH = (endY - startY) / rows;
-      const itemSize = Math.min(cellW, cellH) * 0.45;
-
-      for (let i = 1; i <= count; i++) {
-        const col = (i - 1) % cols;
-        const row = Math.floor((i - 1) / cols);
-
-        const cx = startX + (col * cellW) + (cellW / 2);
-        const cy = startY + (row * cellH) + (cellH / 2);
-
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-        const star = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-        star.setAttribute("points", createStarPoints(cx, cy, 5, itemSize, itemSize * 0.5));
-        star.setAttribute("stroke", "#000000");
-        star.setAttribute("stroke-width", "3");
-        star.setAttribute("fill", "#FFFFFF");
-        g.appendChild(star);
-
-        if (state.showNumbers) {
-          const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          text.setAttribute("x", cx);
-          text.setAttribute("y", cy + (itemSize * 0.3));
-          text.setAttribute("text-anchor", "middle");
-          text.setAttribute("font-size", itemSize * 0.75);
-          text.setAttribute("font-weight", "bold");
-          text.setAttribute("fill", "#000000");
-          text.textContent = i;
-          g.appendChild(text);
-        }
-
-        svg.appendChild(g);
-      }
-
-      return svg;
-    }
-
-    function generateFullWidthGridSVG() {
-      const count = state.count;
-
-      const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-
-      let cols = 4;
-      if (count <= 4) cols = 2;
-      else if (count <= 9) cols = 3;
-      else if (count <= 16) cols = 4;
-      else if (count <= 25) cols = 5;
-      else if (count <= 36) cols = 6;
-      else if (count <= 50) cols = 7;
-      else if (count <= 70) cols = 8;
-      else cols = 10;
-
-      const rows = Math.ceil(count / cols);
-
-      const svgWidth = 650;
-      const cellWidth = svgWidth / cols;
-      const cellHeight = Math.min(120, Math.max(48, 480 / rows));
-      const svgHeight = rows * cellHeight + 10;
-
-      svg.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
-      svg.setAttribute("class", "w-full h-full max-h-[480px]");
-
-      for (let i = 1; i <= count; i++) {
-        const col = (i - 1) % cols;
-        const row = Math.floor((i - 1) / cols);
-
-        const x = col * cellWidth;
-        const y = row * cellHeight;
-        const cx = x + cellWidth / 2;
-        const cy = y + cellHeight / 2;
-
-        const size = Math.min(cellWidth, cellHeight) * 0.44;
-
-        const g = document.createElementNS("http://www.w3.org/2000/svg", "g");
-
-        if (state.theme === 'custom' && state.customOutlineDataUrl) {
-          const borderRect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-          borderRect.setAttribute("x", cx - size);
-          borderRect.setAttribute("y", cy - size);
-          borderRect.setAttribute("width", size * 2);
-          borderRect.setAttribute("height", size * 2);
-          borderRect.setAttribute("rx", "12");
-          borderRect.setAttribute("stroke", "#000000");
-          borderRect.setAttribute("stroke-width", "3");
-          borderRect.setAttribute("fill", "#FFFFFF");
-          g.appendChild(borderRect);
-
-          const img = document.createElementNS("http://www.w3.org/2000/svg", "image");
-          img.setAttribute("x", cx - size + 3);
-          img.setAttribute("y", cy - size + 3);
-          img.setAttribute("width", size * 2 - 6);
-          img.setAttribute("height", size * 2 - 6);
-          img.setAttribute("href", state.customOutlineDataUrl);
-          img.setAttribute("preserveAspectRatio", "xMidYMid meet");
-          g.appendChild(img);
-        } else {
-          g.innerHTML = renderCuteLineArt(state.theme, cx, cy, size);
-        }
-
-        if (state.showNumbers) {
-          const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
-          text.setAttribute("x", cx);
-          text.setAttribute("y", cy + (size * 0.28));
-          text.setAttribute("text-anchor", "middle");
-          text.setAttribute("font-size", Math.max(13, size * 0.65));
-          text.setAttribute("font-weight", "bold");
-          text.setAttribute("fill", "#000000");
-          text.textContent = i;
-          g.appendChild(text);
-        }
-
-        svg.appendChild(g);
-      }
-
-      return svg;
-    }
-
-    function renderCuteLineArt(theme, cx, cy, s) {
-      const b = "#000000";
-      const w = "3";
-
-      switch(theme) {
-        case 'dogs':
-          return `
-            <path d="M ${cx-s*0.6} ${cy-s*0.1} C ${cx-s*1.1} ${cy-s*0.6}, ${cx-s*0.9} ${cy+s*0.7}, ${cx-s*0.5} ${cy+s*0.4}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <path d="M ${cx+s*0.6} ${cy-s*0.1} C ${cx+s*1.1} ${cy-s*0.6}, ${cx+s*0.9} ${cy+s*0.7}, ${cx+s*0.5} ${cy+s*0.4}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <circle cx="${cx}" cy="${cy}" r="${s*0.75}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <circle cx="${cx-s*0.25}" cy="${cy-s*0.2}" r="${s*0.08}" fill="#000000" />
-            <circle cx="${cx+s*0.25}" cy="${cy-s*0.2}" r="${s*0.08}" fill="#000000" />
-            <ellipse cx="${cx}" cy="${cy+s*0.1}" rx="${s*0.18}" ry="${s*0.12}" fill="#FFFFFF" stroke="${b}" stroke-width="2" />
+      switch (theme) {
+        case 'puppy':
+          pathContent = `
+            <!-- Cute Puppy Head Outline -->
+            <circle cx="${cx}" cy="${cy}" r="${radius * 0.78}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Left Floppy Ear -->
+            <path d="M ${cx - radius * 0.7} ${cy - radius * 0.2} Q ${cx - radius * 1.15} ${cy - radius * 0.2} ${cx - radius * 0.9} ${cy + radius * 0.5} Q ${cx - radius * 0.65} ${cy + radius * 0.7} ${cx - radius * 0.5} ${cy + radius * 0.2}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Right Floppy Ear -->
+            <path d="M ${cx + radius * 0.7} ${cy - radius * 0.2} Q ${cx + radius * 1.15} ${cy - radius * 0.2} ${cx + radius * 0.9} ${cy + radius * 0.5} Q ${cx + radius * 0.65} ${cy + radius * 0.7} ${cx + radius * 0.5} ${cy + radius * 0.2}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Tiny eyes and nose -->
+            <circle cx="${cx - radius * 0.25}" cy="${cy - radius * 0.15}" r="${radius * 0.08}" fill="#0f172a"/>
+            <circle cx="${cx + radius * 0.25}" cy="${cy - radius * 0.15}" r="${radius * 0.08}" fill="#0f172a"/>
+            <ellipse cx="${cx}" cy="${cy + radius * 0.1}" rx="${radius * 0.14}" ry="${radius * 0.1}" fill="#0f172a"/>
           `;
+          break;
 
-        case 'cats':
-          return `
-            <polygon points="${cx-s*0.75},${cy-s*0.1} ${cx-s*0.6},${cy-s*0.85} ${cx-s*0.15},${cy-s*0.5}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <polygon points="${cx+s*0.75},${cy-s*0.1} ${cx+s*0.6},${cy-s*0.85} ${cx+s*0.15},${cy-s*0.5}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <ellipse cx="${cx}" cy="${cy}" rx="${s*0.8}" ry="${s*0.68}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <circle cx="${cx-s*0.28}" cy="${cy-s*0.1}" r="${s*0.08}" fill="#000000" />
-            <circle cx="${cx+s*0.28}" cy="${cy-s*0.1}" r="${s*0.08}" fill="#000000" />
-            <polygon points="${cx-s*0.08},${cy+s*0.1} ${cx+s*0.08},${cy+s*0.1} ${cx},${cy+s*0.18}" fill="#FFFFFF" stroke="${b}" stroke-width="1.5" />
-            <line x1="${cx-s*0.4}" y1="${cy+s*0.15}" x2="${cx-s*0.8}" y2="${cy+s*0.1}" stroke="${b}" stroke-width="2" />
-            <line x1="${cx+s*0.4}" y1="${cy+s*0.15}" x2="${cx+s*0.8}" y2="${cy+s*0.1}" stroke="${b}" stroke-width="2" />
+        case 'kitten':
+          pathContent = `
+            <!-- Cute Cat Head Outline -->
+            <circle cx="${cx}" cy="${cy + radius * 0.08}" r="${radius * 0.78}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Left Pointy Ear -->
+            <path d="M ${cx - radius * 0.65} ${cy - radius * 0.35} L ${cx - radius * 0.8} ${cy - radius * 0.95} L ${cx - radius * 0.2} ${cy - radius * 0.7}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
+            <!-- Right Pointy Ear -->
+            <path d="M ${cx + radius * 0.65} ${cy - radius * 0.35} L ${cx + radius * 0.8} ${cy - radius * 0.95} L ${cx + radius * 0.2} ${cy - radius * 0.7}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}" stroke-linejoin="round"/>
+            <!-- Eyes, nose & whiskers -->
+            <circle cx="${cx - radius * 0.28}" cy="${cy}" r="${radius * 0.07}" fill="#0f172a"/>
+            <circle cx="${cx + radius * 0.28}" cy="${cy}" r="${radius * 0.07}" fill="#0f172a"/>
+            <polygon points="${cx - radius * 0.08},${cy + radius * 0.18} ${cx + radius * 0.08},${cy + radius * 0.18} ${cx},${cy + radius * 0.26}" fill="#0f172a"/>
+            <line x1="${cx - radius * 0.35}" y1="${cy + radius * 0.22}" x2="${cx - radius * 0.65}" y2="${cy + radius * 0.15}" stroke="#0f172a" stroke-width="${strokeWidth * 0.8}"/>
+            <line x1="${cx + radius * 0.35}" y1="${cy + radius * 0.22}" x2="${cx + radius * 0.65}" y2="${cy + radius * 0.15}" stroke="#0f172a" stroke-width="${strokeWidth * 0.8}"/>
           `;
+          break;
 
-        case 'aliens':
-          return `
-            <path d="M ${cx-s*0.5} ${cy-s*0.1} C ${cx-s*0.5} ${cy-s*0.85}, ${cx+s*0.5} ${cy-s*0.85}, ${cx+s*0.5} ${cy-s*0.1} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <ellipse cx="${cx}" cy="${cy}" rx="${s*0.95}" ry="${s*0.35}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <circle cx="${cx}" cy="${cy-s*0.35}" r="${s*0.1}" fill="#000000" />
-            <circle cx="${cx-s*0.5}" cy="${cy+s*0.15}" r="${s*0.08}" fill="#FFFFFF" stroke="${b}" stroke-width="2" />
-            <circle cx="${cx}" cy="${cy+s*0.18}" r="${s*0.08}" fill="#FFFFFF" stroke="${b}" stroke-width="2" />
-            <circle cx="${cx+s*0.5}" cy="${cy+s*0.15}" r="${s*0.08}" fill="#FFFFFF" stroke="${b}" stroke-width="2" />
+        case 'book':
+          const bw = innerSize * 0.85;
+          const bh = innerSize * 0.95;
+          const bx = cx - bw / 2;
+          const by = cy - bh / 2;
+          pathContent = `
+            <!-- Open Book Outline -->
+            <rect x="${bx}" y="${by}" width="${bw}" height="${bh}" rx="${bw * 0.1}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Spine shadow detail line -->
+            <line x1="${bx + bw * 0.18}" y1="${by}" x2="${bx + bw * 0.18}" y2="${by + bh}" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <!-- Bookmark Ribbon -->
+            <path d="M ${bx + bw * 0.6} ${by + bh} L ${bx + bw * 0.6} ${by + bh * 1.15} L ${bx + bw * 0.68} ${by + bh * 1.08} L ${bx + bw * 0.76} ${by + bh * 1.15} L ${bx + bw * 0.76} ${by + bh}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth * 0.8}"/>
           `;
+          break;
 
-        case 'dinos':
-          return `
-            <path d="M ${cx-s*0.5} ${cy+s*0.6} C ${cx-s*0.8} ${cy-s*0.6}, ${cx+s*0.5} ${cy-s*0.85}, ${cx+s*0.75} ${cy-s*0.1} C ${cx+s*0.9} ${cy+s*0.6}, ${cx} ${cy+s*0.85}, ${cx-s*0.5} ${cy+s*0.6} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <circle cx="${cx+s*0.25}" cy="${cy-s*0.35}" r="${s*0.09}" fill="#000000" />
+        case 'alien':
+          pathContent = `
+            <!-- UFO / Space Alien -->
+            <ellipse cx="${cx}" cy="${cy}" rx="${radius * 0.95}" ry="${radius * 0.38}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <path d="M ${cx - radius * 0.55} ${cy - radius * 0.1} A ${radius * 0.55} ${radius * 0.55} 0 0 1 ${cx + radius * 0.55} ${cy - radius * 0.1}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <circle cx="${cx}" cy="${cy - radius * 0.32}" r="${radius * 0.16}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <circle cx="${cx}" cy="${cy - radius * 0.32}" r="${radius * 0.06}" fill="#0f172a"/>
           `;
+          break;
 
-        case 'stars':
-          return `
-            <polygon points="${createStarPoints(cx, cy, 5, s*0.9, s*0.42)}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
+        case 'dino':
+          pathContent = `
+            <!-- Cute Baby Dinosaur -->
+            <path d="M ${cx - radius * 0.5} ${cy + radius * 0.6} Q ${cx - radius * 0.8} ${cy} ${cx - radius * 0.4} ${cy - radius * 0.5} Q ${cx} ${cy - radius * 0.9} ${cx + radius * 0.4} ${cy - radius * 0.4} Q ${cx + radius * 0.8} ${cy} ${cx + radius * 0.5} ${cy + radius * 0.6} Z" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <circle cx="${cx - radius * 0.1}" cy="${cy - radius * 0.4}" r="${radius * 0.08}" fill="#0f172a"/>
+            <!-- Cute Back Spikes -->
+            <polygon points="${cx + radius * 0.3},${cy - radius * 0.5} ${cx + radius * 0.5},${cy - radius * 0.7} ${cx + radius * 0.5},${cy - radius * 0.3}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
           `;
+          break;
+
+        case 'star':
+          pathContent = `
+            <!-- Cute Big Star -->
+            <path d="M ${cx} ${cy - radius * 0.9} L ${cx + radius * 0.28} ${cy - radius * 0.3} L ${cx + radius * 0.92} ${cy - radius * 0.2} L ${cx + radius * 0.45} ${cy + radius * 0.25} L ${cx + radius * 0.58} ${cy + radius * 0.88} L ${cx} ${cy + radius * 0.58} L ${cx - radius * 0.58} ${cy + radius * 0.88} L ${cx - radius * 0.45} ${cy + radius * 0.25} L ${cx - radius * 0.92} ${cy - radius * 0.2} L ${cx - radius * 0.28} ${cy - radius * 0.3} Z" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+          `;
+          break;
 
         case 'sports':
-          return `
-            <circle cx="${cx}" cy="${cy}" r="${s*0.88}" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <path d="M ${cx-s*0.88} ${cy} C ${cx-s*0.3} ${cy-s*0.5}, ${cx+s*0.3} ${cy-s*0.5}, ${cx+s*0.88} ${cy}" fill="none" stroke="${b}" stroke-width="2.5" />
-            <path d="M ${cx-s*0.88} ${cy} C ${cx-s*0.3} ${cy+s*0.5}, ${cx+s*0.3} ${cy+s*0.5}, ${cx+s*0.88} ${cy}" fill="none" stroke="${b}" stroke-width="2.5" />
+          pathContent = `
+            <!-- Sports Ball (Soccer / Basketball outline) -->
+            <circle cx="${cx}" cy="${cy}" r="${radius * 0.88}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <path d="M ${cx - radius * 0.88} ${cy} Q ${cx} ${cy - radius * 0.4} ${cx + radius * 0.88} ${cy}" fill="none" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+            <path d="M ${cx - radius * 0.88} ${cy} Q ${cx} ${cy + radius * 0.4} ${cx + radius * 0.88} ${cy}" fill="none" stroke="#0f172a" stroke-width="${strokeWidth}"/>
           `;
+          break;
 
-        case 'books':
+        case 'grape':
+          pathContent = `
+            <!-- Single Grape Bubble -->
+            <circle cx="${cx}" cy="${cy}" r="${radius * 0.85}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>
+          `;
+          break;
+
+        case 'custom':
+          if (customImageOutlineDataUrl) {
+            pathContent = `
+              <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="12" fill="white" stroke="#0f172a" stroke-width="2"/>
+              <image href="${customImageOutlineDataUrl}" x="${x + 2}" y="${y + 2}" width="${size - 4}" height="${size - 4}" preserveAspectRatio="xMidYMid meet"/>
+            `;
+          } else {
+            pathContent = `
+              <rect x="${x}" y="${y}" width="${size}" height="${size}" rx="12" fill="#f8fafc" stroke="#0f172a" stroke-width="2" stroke-dasharray="4"/>
+              <text x="${cx}" y="${cy}" text-anchor="middle" dominant-baseline="central" font-size="12" fill="#94a3b8" font-weight="bold">Upload Photo</text>
+            `;
+          }
+          break;
+
         default:
-          return `
-            <path d="M ${cx-s*0.85} ${cy-s*0.5} L ${cx} ${cy-s*0.3} L ${cx+s*0.85} ${cy-s*0.5} L ${cx+s*0.85} ${cy+s*0.5} L ${cx} ${cy+s*0.7} L ${cx-s*0.85} ${cy+s*0.5} Z" fill="#FFFFFF" stroke="${b}" stroke-width="${w}" />
-            <line x1="${cx}" y1="${cy-s*0.3}" x2="${cx}" y2="${cy+s*0.7}" stroke="${b}" stroke-width="2.5" />
-          `;
+          pathContent = `<circle cx="${cx}" cy="${cy}" r="${radius}" fill="white" stroke="#0f172a" stroke-width="${strokeWidth}"/>`;
       }
+
+      // Render bold child-friendly number centered inside shape
+      let numberSvg = '';
+      if (showNumbers) {
+        const fontSize = Math.max(14, Math.min(28, size * 0.38));
+        numberSvg = `
+          <text x="${cx}" y="${cy + (theme === 'alien' ? radius * 0.1 : 0)}" 
+                text-anchor="middle" 
+                dominant-baseline="central" 
+                font-family="Fredoka, sans-serif" 
+                font-weight="700" 
+                font-size="${fontSize}" 
+                fill="#0f172a">
+            ${num}
+          </text>
+        `;
+      }
+
+      return `<g>${pathContent}${numberSvg}</g>`;
     }
 
-    function createStarPoints(cx, cy, spikes, outerRadius, innerRadius) {
-      let rot = Math.PI / 2 * 3;
-      let x = cx;
-      let y = cy;
-      let step = Math.PI / spikes;
-      let path = "";
+    // Main Renderer: Dynamically updates preview layout & calculates full-page SVG grid dimensions
+    function updateView() {
+      // 1. Title & Header Text updates
+      displayTitle.textContent = inputTitle.value.toUpperCase() || 'MY REWARD CHALLENGE';
 
-      for (let i = 0; i < spikes; i++) {
-        x = cx + Math.cos(rot) * outerRadius;
-        y = cy + Math.sin(rot) * outerRadius;
-        path += `${x},${y} `;
-        rot += step;
-
-        x = cx + Math.cos(rot) * innerRadius;
-        y = cy + Math.sin(rot) * innerRadius;
-        path += `${x},${y} `;
-        rot += step;
+      if (mode === 'handwriting') {
+        displayName.textContent = '';
+        displayDate.textContent = '';
+        displayGoal.textContent = '';
+        displayReward.textContent = '';
+      } else {
+        displayName.textContent = inputName.value;
+        displayDate.textContent = inputDate.value;
+        displayGoal.textContent = inputGoal.value;
+        displayReward.textContent = inputReward.value;
       }
-      return path;
+
+      // 2. Measure canvas container space
+      const containerWidth = svgCanvasContainer.clientWidth || 600;
+      const containerHeight = svgCanvasContainer.clientHeight || 450;
+
+      // 3. Optimal Grid Column & Size Auto-Calculation to Maximize Page Fill
+      let cols = 5;
+      if (shapeCount <= 5) cols = 5;
+      else if (shapeCount <= 12) cols = 4;
+      else if (shapeCount <= 20) cols = 5;
+      else if (shapeCount <= 35) cols = 6;
+      else if (shapeCount <= 60) cols = 8;
+      else cols = 10;
+
+      const rows = Math.ceil(shapeCount / cols);
+
+      // Maximize item size based on width and height limits
+      const padding = 10;
+      const availableWidth = containerWidth - padding * 2;
+      const availableHeight = containerHeight - padding * 2;
+
+      const maxCellWidth = availableWidth / cols;
+      const maxCellHeight = availableHeight / rows;
+
+      // Cell size constraint (keeps shapes as large as possible)
+      const cellSize = Math.min(maxCellWidth, maxCellHeight);
+
+      // Calculate canvas bounding box
+      const svgWidth = cols * cellSize;
+      const svgHeight = rows * cellSize;
+
+      let svgInnerHtml = '';
+
+      // Special cluster visual for Grapes theme
+      if (selectedTheme === 'grape' && shapeCount <= 40) {
+        // Render connected grape cluster layout
+        for (let i = 0; i < shapeCount; i++) {
+          const rowIdx = Math.floor(i / cols);
+          const colIdx = i % cols;
+          // Offset alternate rows for grape bunch look
+          const offset = (rowIdx % 2 === 1) ? cellSize * 0.5 : 0;
+          const x = colIdx * cellSize + offset;
+          const y = rowIdx * (cellSize * 0.85);
+
+          if (x + cellSize <= svgWidth) {
+            svgInnerHtml += getThemeSvgShape('grape', i + 1, x, y, cellSize);
+          }
+        }
+      } else {
+        // Standard full-page responsive grid
+        for (let i = 0; i < shapeCount; i++) {
+          const rowIdx = Math.floor(i / cols);
+          const colIdx = i % cols;
+
+          // Center last incomplete row horizontally
+          const itemsInThisRow = (rowIdx === rows - 1) ? (shapeCount % cols || cols) : cols;
+          const rowStartOffset = (svgWidth - itemsInThisRow * cellSize) / 2;
+
+          const x = rowStartOffset + colIdx * cellSize;
+          const y = rowIdx * cellSize;
+
+          svgInnerHtml += getThemeSvgShape(selectedTheme, i + 1, x, y, cellSize);
+        }
+      }
+
+      // Generate SVG markup
+      svgCanvasContainer.innerHTML = `
+        <svg width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}" class="mx-auto block overflow-visible">
+          ${svgInnerHtml}
+        </svg>
+      `;
     }
+
+    // Run setup on load
+    window.addEventListener('DOMContentLoaded', init);
   </script>
 </body>
 </html>
