@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty & Team Name Memo Generator</title>
+    <title>Universal Name & Profile Memo Studio</title>
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
@@ -12,9 +14,27 @@
         body {
             font-family: 'Inter', sans-serif;
             background-color: #f8fafc;
+            color: #1e293b;
         }
 
-        /* 3D Flip Card Effect for Study Mode */
+        /* Aspect ratio container for profile images */
+        .aspect-profile {
+            aspect-ratio: 4 / 4.5;
+        }
+
+        /* Custom scrollbar for preview modal */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* 3D Flip Effects for Flashcards */
         .perspective-1000 {
             perspective: 1000px;
         }
@@ -29,14 +49,14 @@
             transform: rotateY(180deg);
         }
 
-        /* Print Styling */
+        /* Dedicated Print Stylesheet */
         @media print {
             .no-print {
                 display: none !important;
             }
             body {
-                background-color: white !important;
-                color: black !important;
+                background-color: #ffffff !important;
+                color: #000000 !important;
                 padding: 0 !important;
                 margin: 0 !important;
             }
@@ -46,14 +66,20 @@
                 padding: 0 !important;
                 margin: 0 !important;
             }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 12pt;
+                border-bottom: 2px solid #000;
+                padding-bottom: 6pt;
+            }
             .print-grid {
                 display: grid !important;
                 grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
                 gap: 12pt !important;
-                page-break-inside: avoid;
             }
             .print-card {
-                border: 1px solid #cbd5e1 !important;
+                border: 1px solid #94a3b8 !important;
                 border-radius: 6px !important;
                 padding: 8pt !important;
                 box-shadow: none !important;
@@ -62,41 +88,43 @@
                 background: #ffffff !important;
             }
             .print-card img {
-                max-height: 120px !important;
+                max-height: 140px !important;
+                width: 100% !important;
                 object-fit: cover !important;
+                border-radius: 4px !important;
             }
-            .print-card .memo-notes {
-                border-top: 1px dashed #cbd5e1 !important;
-                margin-top: 6pt !important;
-                padding-top: 4pt !important;
-                font-size: 8pt !important;
-            }
-            .study-hidden-name {
-                visibility: visible !important;
-                color: #000 !important;
-                background: none !important;
+            .study-masked {
+                background-color: transparent !important;
+                color: transparent !important;
+                border-bottom: 1px dashed #000 !important;
             }
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col text-slate-800">
+<body class="min-h-screen flex flex-col justify-between">
 
-    <!-- Header Navbar -->
-    <header class="bg-indigo-900 text-white shadow-md no-print">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap justify-between items-center gap-4">
+    <!-- App Header -->
+    <header class="bg-slate-900 text-white border-b border-slate-800 sticky top-0 z-40 no-print">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-wrap justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
-                <div class="bg-indigo-600 p-2.5 rounded-xl shadow-inner">
-                    <i class="fa-solid font-bold fa-address-card text-2xl text-indigo-100"></i>
+                <div class="bg-indigo-600 p-2 rounded-lg text-white shadow-md">
+                    <i class="fa-solid fa-id-card text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-xl font-bold tracking-tight">Name Memo & Directory Sheet Studio</h1>
-                    <p class="text-xs text-indigo-200">Convert team pages into printable collage directories & memory flashcards</p>
+                    <h1 class="text-lg font-bold tracking-tight text-white leading-none">Name & Profile Memo Studio</h1>
+                    <p class="text-xs text-slate-400 mt-1">Universal Directory Generator & Flashcard Active Recall Tool</p>
                 </div>
             </div>
+
+            <!-- Action buttons -->
             <div class="flex items-center gap-2">
-                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-2 rounded-lg font-medium text-sm flex items-center gap-2 shadow transition-all">
+                <button onclick="openModal('importModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg font-medium text-xs flex items-center gap-2 shadow transition">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Add Profiles</span>
+                </button>
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2 rounded-lg font-medium text-xs flex items-center gap-2 shadow transition">
                     <i class="fa-solid fa-print"></i>
-                    <span>Print / PDF Memo</span>
+                    <span>Print / Export PDF</span>
                 </button>
             </div>
         </div>
@@ -104,247 +132,686 @@
 
     <main class="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 print-container">
 
-        <!-- Top Control Bar (URL Loader & Custom Actions) -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 mb-6 no-print">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 items-center">
-                
-                <!-- URL Import Input -->
-                <div class="lg:col-span-6 flex flex-col sm:flex-row gap-2">
-                    <div class="relative flex-grow">
-                        <i class="fa-solid fa-globe absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        <input type="url" id="urlInput" placeholder="https://www.southalabama.edu/colleges/ceps/cins-faculty.html" 
-                            class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm">
-                    </div>
-                    <button onclick="simulateFetchURL()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 shrink-0">
-                        <i class="fa-solid fa-wand-magic-sparkles"></i>
-                        <span>Fetch Faculty</span>
-                    </button>
-                </div>
-
-                <!-- Quick Presets & Manual Add -->
-                <div class="lg:col-span-6 flex flex-wrap gap-2 justify-start lg:justify-end">
-                    <button onclick="loadSouthAlabamaData()" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-graduation-cap"></i>
-                        <span>Load Sample: South Alabama CINS</span>
-                    </button>
-                    <button onclick="openModal('addModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-user-plus"></i>
-                        <span>Add Person</span>
-                    </button>
-                    <button onclick="openModal('bulkModal')" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-file-csv"></i>
-                        <span>Bulk/CSV Import</span>
-                    </button>
-                    <button onclick="clearAllData()" class="bg-rose-50 hover:bg-rose-100 text-rose-600 border border-rose-200 px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
-                        <i class="fa-solid fa-trash-can"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Toast / Status alert -->
-            <div id="statusToast" class="hidden mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-lg flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <i class="fa-solid fa-triangle-exclamation text-amber-500"></i>
-                    <span id="statusToastText">Direct web scraping is restricted by CORS headers. Loaded cached faculty profile data instead!</span>
-                </div>
-                <button onclick="hideToast()" class="text-amber-600 hover:text-amber-800"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-        </section>
-
-        <!-- View & Study Controls -->
-        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-wrap justify-between items-center gap-4 no-print">
+        <!-- Top Tool Bar: Search, View Switches, Study Mode Toggle -->
+        <section class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 no-print flex flex-wrap justify-between items-center gap-4">
             
-            <!-- Filter & Search -->
-            <div class="relative w-full sm:w-64">
+            <!-- Search & Filter Input -->
+            <div class="relative w-full sm:w-72">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="searchInput" oninput="filterPeople()" placeholder="Search name or title..." 
-                    class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Search by name, role, or position..." 
+                    class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
             </div>
 
-            <!-- Study Mode Toggle & Layout Mode Selector -->
-            <div class="flex flex-wrap items-center gap-3">
+            <!-- Controls: View Modes & Study Toggle -->
+            <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
+                
                 <!-- Study Mode Switch -->
-                <label class="inline-flex items-center cursor-pointer bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg hover:bg-slate-100 transition">
-                    <input type="checkbox" id="studyModeToggle" onchange="toggleStudyMode()" class="sr-only peer">
-                    <div class="relative w-9 h-5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-indigo-600"></div>
-                    <span class="ms-2 text-xs font-semibold text-slate-700">Study Mode (Hide Names)</span>
-                </label>
+                <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
+                    <label class="inline-flex items-center cursor-pointer px-2.5 py-1">
+                        <input type="checkbox" id="studyModeToggle" onchange="toggleStudyMode()" class="sr-only peer">
+                        <div class="relative w-8 h-4.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-indigo-600"></div>
+                        <span class="ms-2 text-xs font-semibold text-slate-700">Study Mode (Hide Names)</span>
+                    </label>
+                </div>
 
-                <!-- View Mode Buttons -->
+                <!-- Layout Mode Buttons -->
                 <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
-                    <button onclick="setViewMode('collage')" id="btnViewCollage" class="px-3 py-1 rounded-md font-medium text-indigo-700 bg-white shadow-sm transition">
-                        <i class="fa-solid fa-border-all mr-1"></i> Collage Grid
+                    <button onclick="setViewMode('collage')" id="btnViewCollage" class="px-3 py-1.5 rounded-md font-medium text-indigo-700 bg-white shadow-sm transition">
+                        <i class="fa-solid fa-border-all mr-1"></i> Grid
                     </button>
-                    <button onclick="setViewMode('flashcard')" id="btnViewFlashcard" class="px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
-                        <i class="fa-solid fa-clone mr-1"></i> Flashcard Mode
+                    <button onclick="setViewMode('flashcard')" id="btnViewFlashcard" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+                        <i class="fa-solid fa-clone mr-1"></i> Flashcard
                     </button>
-                    <button onclick="setViewMode('compact')" id="btnViewCompact" class="px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
-                        <i class="fa-solid fa-list mr-1"></i> Print Directory
+                    <button onclick="setViewMode('list')" id="btnViewList" class="px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition">
+                        <i class="fa-solid fa-list mr-1"></i> Directory
                     </button>
                 </div>
+
+                <!-- Danger / Reset Button -->
+                <button onclick="clearRoster()" title="Clear Roster" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition border border-transparent hover:border-rose-200">
+                    <i class="fa-solid fa-trash-can text-sm"></i>
+                </button>
             </div>
         </section>
 
-        <!-- Main Directory Render Area -->
-        <section id="directoryContainer">
-            <!-- Counter Header -->
+        <!-- Printable Document Title (Visible only when printed) -->
+        <div class="hidden print-header">
+            <h1 class="text-xl font-bold uppercase tracking-wider">Profile Directory & Name Memo Sheet</h1>
+            <p class="text-xs text-slate-600">Generated via Name & Profile Memo Studio</p>
+        </div>
+
+        <!-- Profile Render Area -->
+        <section id="rosterSection">
+            <!-- Header Count Bar -->
             <div class="flex justify-between items-center mb-4 px-1">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-500">
-                    Faculty Roster (<span id="personCount">0</span>)
+                <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">
+                    Profiles Loaded (<span id="profileCount">0</span>)
                 </h2>
-                <span class="text-xs text-slate-400 no-print">Tip: Click photos in study mode to test your memory!</span>
+                <div class="flex items-center gap-3 no-print">
+                    <button onclick="openModal('addSingleModal')" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
+                        <i class="fa-solid fa-user-plus"></i> Add Individual Profile
+                    </button>
+                </div>
             </div>
 
-            <!-- Dynamic Card Grid -->
-            <div id="peopleGrid" class="print-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Cards injected by JS -->
+            <!-- Dynamic Profile Grid -->
+            <div id="profileGrid" class="print-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Injected via JavaScript -->
+            </div>
+
+            <!-- Blank / Empty State Dropzone -->
+            <div id="emptyState" class="bg-white rounded-xl border-2 border-dashed border-slate-300 p-8 sm:p-12 text-center my-4">
+                <div class="max-w-md mx-auto">
+                    <div class="w-16 h-16 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl"></i>
+                    </div>
+                    <h3 class="text-base font-bold text-slate-800 mb-1">Your Profile Directory is Empty</h3>
+                    <p class="text-xs text-slate-500 mb-6 leading-relaxed">
+                        Fetch website profiles automatically, upload images, paste raw HTML, or import files to generate your printable name memo sheet.
+                    </p>
+                    <div class="flex flex-wrap justify-center gap-3">
+                        <button onclick="openModal('importModal')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span>Import & Fetch Profiles</span>
+                        </button>
+                        <button onclick="loadSampleDemoData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-2">
+                            <i class="fa-solid fa-vial"></i>
+                            <span>Load Demo Roster</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- Modal: Add Person -->
-    <div id="addModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+    <!-- MODAL: Import & Web Scraper Center -->
+    <div id="importModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-2xl w-full overflow-hidden flex flex-col max-h-[90vh]">
+            
+            <!-- Modal Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center border-b border-slate-800">
+                <div class="flex items-center gap-2.5">
+                    <i class="fa-solid fa-file-import text-indigo-400"></i>
+                    <h3 class="font-bold text-base">Import & Fetch Profiles</h3>
+                </div>
+                <button onclick="closeModal('importModal')" class="text-slate-400 hover:text-white transition">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Navigation Tabs -->
+            <div class="bg-slate-100 border-b border-slate-200 px-6 flex gap-4 text-xs font-medium">
+                <button onclick="switchImportTab('url')" id="tabBtnUrl" class="py-3 border-b-2 border-indigo-600 text-indigo-600 font-semibold transition">
+                    <i class="fa-solid fa-globe mr-1"></i> Web URL Scraper
+                </button>
+                <button onclick="switchImportTab('html')" id="tabBtnHtml" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
+                    <i class="fa-solid fa-code mr-1"></i> Paste Raw HTML/Text
+                </button>
+                <button onclick="switchImportTab('files')" id="tabBtnFiles" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
+                    <i class="fa-solid fa-images mr-1"></i> Batch Upload Photos
+                </button>
+                <button onclick="switchImportTab('data')" id="tabBtnData" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
+                    <i class="fa-solid fa-file-csv mr-1"></i> CSV / JSON
+                </button>
+            </div>
+
+            <!-- Modal Content Body -->
+            <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-4">
+                
+                <!-- TAB 1: Live Web URL Fetcher -->
+                <div id="tabContentUrl" class="space-y-4">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Enter any school, department, or company team directory URL. The scraper fetches public HTML images and names automatically via CORS proxies.
+                    </p>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">Target Faculty or Team Page URL</label>
+                        <div class="flex gap-2">
+                            <input type="url" id="fetchUrlInput" placeholder="https://example-university.edu/faculty-directory" 
+                                class="flex-grow px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                            <button onclick="scrapeWebsiteURL()" id="btnScrapeUrl" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5">
+                                <i class="fa-solid fa-magnifying-glass font-normal"></i>
+                                <span>Scrape Page</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="scrapeStatus" class="hidden p-3 rounded-lg text-xs"></div>
+                </div>
+
+                <!-- TAB 2: Raw HTML / Text Paste Parser -->
+                <div id="tabContentHtml" class="hidden space-y-4">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        If a web page is blocked by strict security or login walls, right-click the page, select <strong>"View Page Source"</strong> or copy the webpage text/HTML, and paste it here!
+                    </p>
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-slate-700">Paste HTML or Web Page Snippet</label>
+                        <textarea id="rawHtmlInput" rows="7" placeholder="Paste <html> or DOM structure here..." 
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    </div>
+                    <button onclick="parseRawHtmlText()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-semibold transition">
+                        Parse HTML Content
+                    </button>
+                </div>
+
+                <!-- TAB 3: Batch Image File Drag & Drop -->
+                <div id="tabContentFiles" class="hidden space-y-4">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Drag and drop profile photos from your computer. The app will attempt to extract names and positions directly from filenames (e.g., <code class="bg-slate-100 px-1 py-0.5 rounded border text-indigo-600">Jane_Doe_Department_Chair.jpg</code>).
+                    </p>
+                    <div id="dropZone" onclick="document.getElementById('fileImageInput').click()" 
+                        class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-50 hover:bg-indigo-50/50 cursor-pointer transition">
+                        <i class="fa-solid fa-images text-3xl text-slate-400 mb-2"></i>
+                        <p class="text-xs font-bold text-slate-700">Click or Drag & Drop Image Files Here</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Supports JPG, PNG, WEBP</p>
+                        <input type="file" id="fileImageInput" multiple accept="image/*" class="hidden" onchange="handleImageBatchUpload(event)">
+                    </div>
+                    <div id="batchUploadList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
+                </div>
+
+                <!-- TAB 4: CSV / JSON Document Import -->
+                <div id="tabContentData" class="hidden space-y-4">
+                    <p class="text-xs text-slate-500 leading-relaxed">
+                        Import standard CSV spreadsheets or JSON rosters directly.
+                    </p>
+                    <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">CSV Format Template</label>
+                        <p class="text-[11px] text-slate-500 font-mono">Name, Position/Role, Image URL, Notes</p>
+                    </div>
+                    <div>
+                        <textarea id="csvTextInput" rows="5" placeholder="Dr. Jane Doe, Assistant Professor, https://example.com/jane.jpg, Office UCOM 300" 
+                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    </div>
+                    <button onclick="parseCSVText()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-semibold transition">
+                        Import Roster Data
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Modal Footer -->
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-200 flex justify-end">
+                <button onclick="closeModal('importModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: Add Single Person -->
+    <div id="addSingleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 relative">
-            <button onclick="closeModal('addModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+            <button onclick="closeModal('addSingleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
-            <h3 class="text-lg font-bold text-slate-800 mb-4">Add Faculty / Colleague</h3>
+            <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-user-plus text-indigo-600"></i> Add Profile Entry
+            </h3>
             
-            <form onsubmit="handleAddPerson(event)" class="space-y-4">
+            <form onsubmit="handleSingleAdd(event)" class="space-y-3 text-xs">
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Full Name *</label>
-                    <input type="text" id="addName" required placeholder="Dr. Jane Doe" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block font-semibold text-slate-700 mb-1">Full Name *</label>
+                    <input type="text" id="singleName" required placeholder="e.g., Dr. Alex Morgan" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Title / Role</label>
-                    <input type="text" id="addRole" placeholder="Assistant Professor of Education" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <label class="block font-semibold text-slate-700 mb-1">Position / Role</label>
+                    <input type="text" id="singleRole" placeholder="e.g., Senior Research Associate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Photo URL</label>
-                    <input type="url" id="addPhotoUrl" placeholder="https://example.com/photo.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none">
-                    <p class="text-[10px] text-slate-400 mt-1">Leave empty to auto-generate a fallback placeholder image.</p>
+                    <label class="block font-semibold text-slate-700 mb-1">Profile Photo URL or Upload File</label>
+                    <input type="text" id="singlePhotoUrl" placeholder="https://example.com/photo.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-1">
+                    <input type="file" id="singlePhotoFile" accept="image/*" onchange="handleSingleFileChange(event)" class="block w-full text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1">Memory Hint / Note</label>
-                    <textarea id="addNote" rows="2" placeholder="e.g. Speaks Japanese, sits near the library office..." class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    <label class="block font-semibold text-slate-700 mb-1">Notes / Mnemonic Hint</label>
+                    <textarea id="singleNote" rows="2" placeholder="e.g., Sits near room 204, wears round glasses" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
-                    <button type="button" onclick="closeModal('addModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Save Entry</button>
+                    <button type="button" onclick="closeModal('addSingleModal')" class="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">Save Profile</button>
                 </div>
             </form>
         </div>
     </div>
 
-    <!-- Modal: Bulk CSV Import -->
-    <div id="bulkModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
-        <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-lg w-full p-6 relative">
-            <button onclick="closeModal('bulkModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
+    <!-- MODAL: Edit Person -->
+    <div id="editModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
+        <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 relative">
+            <button onclick="closeModal('editModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
-            <h3 class="text-lg font-bold text-slate-800 mb-2">Bulk Add Faculty / Team</h3>
-            <p class="text-xs text-slate-500 mb-4">Paste lines formatted as: <code class="bg-slate-100 px-1 py-0.5 rounded text-indigo-600">Name, Title, Photo URL, Notes</code></p>
+            <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Edit Profile
+            </h3>
             
-            <form onsubmit="handleBulkAdd(event)" class="space-y-4">
+            <form onsubmit="handleEditSave(event)" class="space-y-3 text-xs">
+                <input type="hidden" id="editPersonId">
                 <div>
-                    <textarea id="bulkData" rows="6" placeholder="Dr. Yuxin Chen, Assistant Professor, https://example.com/yuxin.jpg, IDD Specialist&#10;Dr. Lu Ding, Assistant Professor, , IDD Faculty" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    <label class="block font-semibold text-slate-700 mb-1">Full Name</label>
+                    <input type="text" id="editName" required class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeModal('bulkModal')" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium hover:bg-indigo-700">Import All</button>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Position / Role</label>
+                    <input type="text" id="editRole" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Photo URL</label>
+                    <input type="text" id="editPhotoUrl" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Notes / Mnemonic Hint</label>
+                    <textarea id="editNote" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                </div>
+                <div class="flex justify-end gap-2 pt-2">
+                    <button type="button" onclick="closeModal('editModal')" class="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700">Update Profile</button>
                 </div>
             </form>
         </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toastNotification" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all transform translate-y-20 opacity-0 pointer-events-none no-print border border-slate-700 text-xs">
+        <i id="toastIcon" class="fa-solid fa-circle-info text-indigo-400"></i>
+        <span id="toastMsg">Notification message</span>
     </div>
 
     <script>
-        // Pre-loaded dataset matching South Alabama Counseling & Instructional Sciences Page
-        const southAlabamaFaculty = [
-            { id: '1', name: "Dr. Yuxin Chen", role: "Assistant Professor of Instructional Design & Development", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/chen-yuxin.jpg", note: "Counseling & Instructional Sciences" },
-            { id: '2', name: "Dr. Lu Ding", role: "Assistant Professor of Instructional Design & Development", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/ding-lu.jpg", note: "IDD Faculty Member" },
-            { id: '3', name: "Dr. Joseph Gaston", role: "Assistant Professor of Instruction in Educational Technology", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/gaston-joseph.jpg", note: "Ed Tech Specialist" },
-            { id: '4', name: "Dr. Yvette Getch", role: "Professor of Counselor Education", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/getch-yvette.jpg", note: "Counselor Education" },
-            { id: '5', name: "Dr. Sohee Kim", role: "Assistant Professor of Instructional Design & Development", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/kim-sohee.jpg", note: "IDD Faculty" },
-            { id: '6', name: "Dinah R. Louanglath", role: "Secretary V", photo: "", note: "Main Office Staff" },
-            { id: '7', name: "Dr. Danny McCarty", role: "Assistant Professor of Counselor Education", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/mccarty-danny.jpg", note: "Counselor Education" },
-            { id: '8', name: "Dr. Ryon McDermott", role: "Professor of Counseling Psychology", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/mcdermott-ryon.jpg", note: "Counseling Psychology" },
-            { id: '9', name: "Dr. Meredith Tittler", role: "Assistant Professor of Counseling Psychology", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/tittler-meredith.jpg", note: "Counseling Psychology" },
-            { id: '10', name: "Dr. Amy Upton", role: "Assistant Professor of Instruction in Counselor Education", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/upton-amy.jpg", note: "Counselor Education" },
-            { id: '11', name: "Dr. James Van Haneghan", role: "Chair & Professor of Instructional Design & Development", photo: "https://www.southalabama.edu/colleges/ceps/cins/images/vanhaneghan-james.jpg", note: "Department Chair" }
-        ];
-
-        // Global State
-        let peopleList = [];
-        let viewMode = 'collage'; // 'collage' | 'flashcard' | 'compact'
+        // Global Application State
+        let roster = [];
+        let viewMode = 'collage'; // 'collage' | 'flashcard' | 'list'
         let studyMode = false;
         let revealedCards = new Set();
+        let singleUploadedBase64 = '';
 
         // Initialize App
         window.addEventListener('DOMContentLoaded', () => {
-            loadSouthAlabamaData();
+            loadSavedRoster();
+            renderGrid();
         });
 
-        // Load Preset South Alabama Data
-        function loadSouthAlabamaData() {
-            peopleList = [...southAlabamaFaculty];
-            revealedCards.clear();
-            renderGrid();
+        // Save & Load Local Storage
+        function saveRoster() {
+            localStorage.setItem('universal_name_memo_roster', JSON.stringify(roster));
         }
 
-        // Simulate fetching URL (Handles CORS Fallback gracefully)
-        function simulateFetchURL() {
-            const url = document.getElementById('urlInput').value.trim();
-            if (!url) {
-                alert('Please enter a valid webpage URL.');
+        function loadSavedRoster() {
+            const data = localStorage.getItem('universal_name_memo_roster');
+            if (data) {
+                try {
+                    roster = JSON.parse(data);
+                } catch(e) {
+                    roster = [];
+                }
+            }
+        }
+
+        // Show Toast Helper
+        function showToast(message, iconClass = "fa-circle-info text-indigo-400") {
+            const toast = document.getElementById('toastNotification');
+            const toastMsg = document.getElementById('toastMsg');
+            const toastIcon = document.getElementById('toastIcon');
+
+            toastMsg.innerText = message;
+            toastIcon.className = `fa-solid ${iconClass}`;
+
+            toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
+            }, 3500);
+        }
+
+        // Modal Management
+        function openModal(id) {
+            document.getElementById(id).classList.remove('hidden');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.add('hidden');
+        }
+
+        function switchImportTab(tab) {
+            ['url', 'html', 'files', 'data'].forEach(t => {
+                const btn = document.getElementById(`tabBtn${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                const content = document.getElementById(`tabContent${t.charAt(0).toUpperCase() + t.slice(1)}`);
+                if (t === tab) {
+                    btn.className = "py-3 border-b-2 border-indigo-600 text-indigo-600 font-semibold transition";
+                    content.classList.remove('hidden');
+                } else {
+                    btn.className = "py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition";
+                    content.classList.add('hidden');
+                }
+            });
+        }
+
+        // Clear Roster
+        function clearRoster() {
+            if (roster.length === 0) return;
+            if (confirm("Are you sure you want to clear all loaded profiles from your memo roster?")) {
+                roster = [];
+                revealedCards.clear();
+                saveRoster();
+                renderGrid();
+                showToast("Profile roster cleared", "fa-trash-can text-rose-400");
+            }
+        }
+
+        // Scrape Live Web URL
+        async function scrapeWebsiteURL() {
+            const urlInput = document.getElementById('fetchUrlInput').value.trim();
+            const statusBox = document.getElementById('scrapeStatus');
+            const btn = document.getElementById('btnScrapeUrl');
+
+            if (!urlInput) {
+                alert("Please enter a valid directory URL");
                 return;
             }
 
-            // Show Toast notification about Web Scraping constraints on Client-Side GitHub pages
-            const toast = document.getElementById('statusToast');
-            const toastText = document.getElementById('statusToastText');
-            toastText.innerText = "Simulating scraper for URL... Browser CORS security prevents live HTML cross-origin scraping directly. Populating directory with official department data!";
-            toast.classList.remove('hidden');
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching...`;
+            statusBox.className = "p-3 rounded-lg text-xs bg-slate-100 text-slate-700 block border border-slate-200";
+            statusBox.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-indigo-600 mr-1.5"></i> Connecting to target webpage via proxy...`;
 
-            loadSouthAlabamaData();
-        }
-
-        function hideToast() {
-            document.getElementById('statusToast').classList.add('hidden');
-        }
-
-        // Clear Data
-        function clearAllData() {
-            if (confirm("Are you sure you want to clear all faculty entries?")) {
-                peopleList = [];
-                renderGrid();
+            try {
+                // Public CORS proxies fallback chain
+                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlInput)}`;
+                const response = await fetch(proxyUrl);
+                
+                if (!response.ok) throw new Error("Network response failed");
+                const data = await response.json();
+                
+                if (data && data.contents) {
+                    const parsed = parseHTMLContent(data.contents, urlInput);
+                    if (parsed.length > 0) {
+                        roster = [...roster, ...parsed];
+                        saveRoster();
+                        renderGrid();
+                        closeModal('importModal');
+                        showToast(`Successfully extracted ${parsed.length} profiles!`, "fa-circle-check text-emerald-400");
+                    } else {
+                        statusBox.className = "p-3 rounded-lg text-xs bg-amber-50 text-amber-800 border border-amber-200";
+                        statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Could not identify standardized profile cards automatically. Try copying page HTML directly into the <strong>Paste Raw HTML</strong> tab!`;
+                    }
+                } else {
+                    throw new Error("No readable HTML contents");
+                }
+            } catch (err) {
+                statusBox.className = "p-3 rounded-lg text-xs bg-rose-50 text-rose-800 border border-rose-200";
+                statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 mr-1.5"></i> Failed to scrape directly due to server security. Please use the <strong>Paste Raw HTML</strong> tab to import!`;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Scrape Page`;
             }
+        }
+
+        // Parse HTML DOM structure for images, names, and positions
+        function parseHTMLContent(htmlText, baseUrl = "") {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(htmlText, 'text/html');
+            const extracted = [];
+
+            // Attempt to find image elements
+            const images = Array.from(doc.querySelectorAll('img'));
+
+            images.forEach((img, idx) => {
+                let src = img.getAttribute('src') || img.getAttribute('data-src') || '';
+                if (!src) return;
+
+                // Handle relative URLs
+                if (baseUrl && !src.startsWith('http') && !src.startsWith('data:')) {
+                    try {
+                        src = new URL(src, baseUrl).href;
+                    } catch(e){}
+                }
+
+                // Filter out tiny icons, buttons, or logos
+                const width = img.getAttribute('width');
+                const height = img.getAttribute('height');
+                if (width && parseInt(width) < 50) return;
+                if (src.includes('logo') || src.includes('icon') || src.includes('header')) return;
+
+                // Candidate Name extraction
+                let candidateName = img.getAttribute('alt') || img.getAttribute('title') || "";
+                let candidateRole = "";
+
+                // Look at parent containers for headers/titles
+                const parent = img.closest('div, li, tr, article, section') || img.parentElement;
+                if (parent) {
+                    const textElements = parent.querySelectorAll('h1, h2, h3, h4, h5, strong, b, a');
+                    textElements.forEach(el => {
+                        const txt = el.innerText.trim();
+                        if (txt.length > 2 && txt.length < 50 && !candidateName) {
+                            candidateName = txt;
+                        } else if (txt.length > 2 && txt.length < 80 && candidateName && !candidateRole && txt !== candidateName) {
+                            candidateRole = txt;
+                        }
+                    });
+
+                    // Search for paragraph or small tags for positions
+                    if (!candidateRole) {
+                        const subText = parent.querySelector('p, span, .title, .position, .role');
+                        if (subText && subText.innerText.trim() !== candidateName) {
+                            candidateRole = subText.innerText.trim();
+                        }
+                    }
+                }
+
+                if (candidateName && candidateName.length > 2) {
+                    extracted.push({
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: candidateName.replace(/\s+/g, ' ').trim(),
+                        role: candidateRole ? candidateRole.replace(/\s+/g, ' ').trim() : 'Team / Faculty Member',
+                        photo: src,
+                        note: ''
+                    });
+                }
+            });
+
+            // Deduplicate by name & image
+            const unique = [];
+            const seen = new Set();
+            extracted.forEach(item => {
+                const key = item.name.toLowerCase();
+                if (!seen.has(key)) {
+                    seen.add(key);
+                    unique.push(item);
+                }
+            });
+
+            return unique;
+        }
+
+        // Parse Raw HTML Input
+        function parseRawHtmlText() {
+            const raw = document.getElementById('rawHtmlInput').value;
+            if (!raw.trim()) {
+                alert("Please paste HTML or copied text snippet.");
+                return;
+            }
+
+            const parsed = parseHTMLContent(raw);
+            if (parsed.length > 0) {
+                roster = [...roster, ...parsed];
+                saveRoster();
+                renderGrid();
+                closeModal('importModal');
+                document.getElementById('rawHtmlInput').value = '';
+                showToast(`Extracted ${parsed.length} profiles from HTML!`, "fa-circle-check text-emerald-400");
+            } else {
+                alert("Could not extract profile images or names from the pasted HTML snippet.");
+            }
+        }
+
+        // Batch File Upload with automatic filename parsing
+        function handleImageBatchUpload(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            let count = 0;
+            files.forEach(file => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const base64 = e.target.result;
+                    
+                    // Parse filename e.g. "Jane_Doe_Professor.jpg"
+                    let cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+                    let nameParts = cleanName.split(' ');
+                    let parsedName = cleanName;
+                    let parsedRole = "Team Member";
+
+                    if (nameParts.length > 2) {
+                        parsedName = `${nameParts[0]} ${nameParts[1]}`;
+                        parsedRole = nameParts.slice(2).join(' ');
+                    }
+
+                    roster.push({
+                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                        name: parsedName,
+                        role: parsedRole,
+                        photo: base64,
+                        note: `Uploaded file: ${file.name}`
+                    });
+
+                    count++;
+                    if (count === files.length) {
+                        saveRoster();
+                        renderGrid();
+                        closeModal('importModal');
+                        showToast(`Uploaded and formatted ${files.length} photos!`, "fa-circle-check text-emerald-400");
+                    }
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Parse CSV Text
+        function parseCSVText() {
+            const text = document.getElementById('csvTextInput').value.trim();
+            if (!text) return;
+
+            const lines = text.split('\n');
+            let added = 0;
+
+            lines.forEach((line, idx) => {
+                const parts = line.split(',');
+                if (parts[0] && parts[0].trim()) {
+                    roster.push({
+                        id: (Date.now() + idx).toString(),
+                        name: parts[0] ? parts[0].trim() : 'Unknown Profile',
+                        role: parts[1] ? parts[1].trim() : '',
+                        photo: parts[2] ? parts[2].trim() : '',
+                        note: parts[3] ? parts[3].trim() : ''
+                    });
+                    added++;
+                }
+            });
+
+            saveRoster();
+            renderGrid();
+            closeModal('importModal');
+            document.getElementById('csvTextInput').value = '';
+            showToast(`Imported ${added} profiles from CSV`, "fa-circle-check text-emerald-400");
+        }
+
+        // Single File Upload Reader
+        function handleSingleFileChange(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    singleUploadedBase64 = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Add Single Person
+        function handleSingleAdd(e) {
+            e.preventDefault();
+            const name = document.getElementById('singleName').value.trim();
+            const role = document.getElementById('singleRole').value.trim();
+            const photoUrl = document.getElementById('singlePhotoUrl').value.trim();
+            const note = document.getElementById('singleNote').value.trim();
+
+            if (!name) return;
+
+            roster.push({
+                id: Date.now().toString(),
+                name,
+                role: role || 'Team / Staff Member',
+                photo: singleUploadedBase64 || photoUrl,
+                note
+            });
+
+            singleUploadedBase64 = '';
+            saveRoster();
+            renderGrid();
+            e.target.reset();
+            closeModal('addSingleModal');
+            showToast("Profile saved successfully");
+        }
+
+        // Edit Profile
+        function openEditModal(id) {
+            const p = roster.find(item => item.id === id);
+            if (!p) return;
+
+            document.getElementById('editPersonId').value = p.id;
+            document.getElementById('editName').value = p.name;
+            document.getElementById('editRole').value = p.role || '';
+            document.getElementById('editPhotoUrl').value = p.photo || '';
+            document.getElementById('editNote').value = p.note || '';
+
+            openModal('editModal');
+        }
+
+        function handleEditSave(e) {
+            e.preventDefault();
+            const id = document.getElementById('editPersonId').value;
+            const p = roster.find(item => item.id === id);
+            
+            if (p) {
+                p.name = document.getElementById('editName').value.trim();
+                p.role = document.getElementById('editRole').value.trim();
+                p.photo = document.getElementById('editPhotoUrl').value.trim();
+                p.note = document.getElementById('editNote').value.trim();
+
+                saveRoster();
+                renderGrid();
+                closeModal('editModal');
+                showToast("Profile updated");
+            }
+        }
+
+        function deleteProfile(id, event) {
+            if (event) event.stopPropagation();
+            roster = roster.filter(p => p.id !== id);
+            revealedCards.delete(id);
+            saveRoster();
+            renderGrid();
+            showToast("Profile removed", "fa-trash-can text-rose-400");
         }
 
         // View Mode Switcher
         function setViewMode(mode) {
             viewMode = mode;
-            
-            // Toggle active button CSS
-            ['Collage', 'Flashcard', 'Compact'].forEach(m => {
+            ['Collage', 'Flashcard', 'List'].forEach(m => {
                 const btn = document.getElementById(`btnView${m}`);
                 if (m.toLowerCase() === mode) {
-                    btn.className = "px-3 py-1 rounded-md font-medium text-indigo-700 bg-white shadow-sm transition";
+                    btn.className = "px-3 py-1.5 rounded-md font-medium text-indigo-700 bg-white shadow-sm transition";
                 } else {
-                    btn.className = "px-3 py-1 rounded-md font-medium text-slate-600 hover:text-slate-900 transition";
+                    btn.className = "px-3 py-1.5 rounded-md font-medium text-slate-600 hover:text-slate-900 transition";
                 }
             });
-
             renderGrid();
         }
 
-        // Study Mode Toggle
+        // Toggle Study Mode
         function toggleStudyMode() {
             studyMode = document.getElementById('studyModeToggle').checked;
             revealedCards.clear();
             renderGrid();
         }
 
-        // Reveal card name in study mode
+        // Click to reveal card in study mode
         function toggleReveal(id) {
             if (!studyMode) return;
             if (revealedCards.has(id)) {
@@ -355,24 +822,37 @@
             renderGrid();
         }
 
-        // Render People Grid
+        function filterProfiles() {
+            renderGrid();
+        }
+
+        // Render Cards Grid
         function renderGrid() {
-            const container = document.getElementById('peopleGrid');
+            const container = document.getElementById('profileGrid');
+            const emptyState = document.getElementById('emptyState');
             const searchVal = document.getElementById('searchInput').value.toLowerCase();
-            
-            const filtered = peopleList.filter(p => 
+
+            const filtered = roster.filter(p => 
                 p.name.toLowerCase().includes(searchVal) || 
                 p.role.toLowerCase().includes(searchVal) ||
                 (p.note && p.note.toLowerCase().includes(searchVal))
             );
 
-            document.getElementById('personCount').innerText = filtered.length;
+            document.getElementById('profileCount').innerText = filtered.length;
+
+            if (roster.length === 0) {
+                container.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
 
             if (filtered.length === 0) {
                 container.innerHTML = `
                     <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-xl border border-dashed border-slate-300">
-                        <i class="fa-solid fa-users-slash text-3xl mb-2"></i>
-                        <p class="text-sm">No profiles found. Add profiles or load the sample roster above!</p>
+                        <i class="fa-solid fa-user-slash text-3xl mb-2"></i>
+                        <p class="text-xs">No matching profiles found for "${searchVal}"</p>
                     </div>
                 `;
                 return;
@@ -381,76 +861,104 @@
             container.innerHTML = filtered.map(person => {
                 const isRevealed = revealedCards.has(person.id);
                 const isHidden = studyMode && !isRevealed;
-                
-                // Fallback Avatar SVG / Placeholder
-                const photoSrc = person.photo ? person.photo : `https://placehold.co/300x350/e2e8f0/475569?text=${encodeURIComponent(person.name)}`;
 
-                if (viewMode === 'compact') {
-                    // Compact Printable List Row
+                const fallbackSvg = `https://placehold.co/300x350/e2e8f0/475569?text=${encodeURIComponent(person.name)}`;
+                const photoSrc = person.photo ? person.photo : fallbackSvg;
+
+                // COMPACT DIRECTORY LIST VIEW
+                if (viewMode === 'list') {
                     return `
-                        <div class="print-card bg-white border border-slate-200 rounded-xl p-3 flex items-center gap-3 shadow-sm hover:shadow transition">
-                            <img src="${photoSrc}" onerror="this.src='https://placehold.co/150x150/cbd5e1/475569?text=Photo'" 
-                                class="w-14 h-14 rounded-lg object-cover bg-slate-100 flex-shrink-0" alt="${person.name}">
-                            <div class="overflow-hidden">
-                                <h3 class="font-bold text-slate-800 text-sm truncate ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none cursor-pointer' : ''}" 
-                                    onclick="toggleReveal('${person.id}')">
-                                    ${isHidden ? '████████████' : person.name}
-                                </h3>
-                                <p class="text-xs text-slate-500 truncate">${person.role || 'Faculty Member'}</p>
-                                ${person.note ? `<p class="text-[10px] text-indigo-600 mt-0.5 truncate">${person.note}</p>` : ''}
+                        <div class="print-card bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:shadow transition">
+                            <div class="flex items-center gap-3 overflow-hidden">
+                                <img src="${photoSrc}" onerror="this.src='${fallbackSvg}'" 
+                                    class="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200" alt="${person.name}">
+                                <div class="overflow-hidden cursor-pointer" onclick="toggleReveal('${person.id}')">
+                                    <h3 class="font-bold text-slate-800 text-xs truncate ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none study-masked' : ''}">
+                                        ${isHidden ? '████████████' : person.name}
+                                    </h3>
+                                    <p class="text-[11px] text-slate-500 truncate">${person.role || 'Position Title'}</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1.5 no-print shrink-0">
+                                <button onclick="openEditModal('${person.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 rounded">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button onclick="deleteProfile('${person.id}', event)" class="p-1.5 text-slate-400 hover:text-rose-600 rounded">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
                             </div>
                         </div>
                     `;
                 }
 
+                // FLASHCARD FLIP VIEW
                 if (viewMode === 'flashcard') {
-                    // Flashcard Flip View
                     return `
-                        <div class="print-card bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col items-center p-5 text-center transition hover:shadow-md cursor-pointer" onclick="toggleReveal('${person.id}')">
+                        <div class="print-card bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col items-center p-5 text-center transition hover:shadow-md cursor-pointer relative group" onclick="toggleReveal('${person.id}')">
                             <div class="relative w-28 h-28 mb-3">
-                                <img src="${photoSrc}" onerror="this.src='https://placehold.co/200x200/cbd5e1/475569?text=Photo'" 
-                                    class="w-full h-full rounded-full object-cover shadow-sm border-2 border-indigo-100" alt="Person">
+                                <img src="${photoSrc}" onerror="this.src='${fallbackSvg}'" 
+                                    class="w-full h-full rounded-full object-cover shadow-inner border-2 border-slate-100" alt="${person.name}">
                                 ${studyMode ? `
-                                    <span class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-1.5 text-xs shadow">
+                                    <span class="absolute bottom-0 right-0 bg-indigo-600 text-white rounded-full p-1.5 text-[10px] shadow">
                                         <i class="fa-solid ${isRevealed ? 'fa-eye' : 'fa-eye-slash'}"></i>
                                     </span>
                                 ` : ''}
                             </div>
-                            <h3 class="font-bold text-slate-800 text-base mb-1 ${isHidden ? 'bg-slate-700 text-slate-700 rounded px-3 py-0.5 select-none' : ''}">
+                            <h3 class="font-bold text-slate-800 text-sm mb-0.5 ${isHidden ? 'bg-slate-800 text-slate-800 rounded px-3 py-0.5 select-none study-masked' : ''}">
                                 ${isHidden ? '??? Click to Reveal' : person.name}
                             </h3>
-                            <p class="text-xs text-slate-500 mb-2">${person.role || 'Faculty Roster'}</p>
-                            ${person.note ? `<span class="inline-block bg-indigo-50 text-indigo-700 border border-indigo-100 px-2.5 py-0.5 rounded-full text-[11px] font-medium">${person.note}</span>` : ''}
+                            <p class="text-xs text-slate-500 mb-2">${person.role || 'Team Member'}</p>
+                            ${person.note ? `<span class="inline-block bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-medium max-w-full truncate">${person.note}</span>` : ''}
+                            
+                            <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition no-print flex gap-1 bg-white/90 p-1 rounded-lg border border-slate-200 shadow-sm">
+                                <button onclick="event.stopPropagation(); openEditModal('${person.id}')" class="text-slate-500 hover:text-indigo-600 p-1">
+                                    <i class="fa-solid fa-pen text-xs"></i>
+                                </button>
+                                <button onclick="deleteProfile('${person.id}', event)" class="text-slate-500 hover:text-rose-600 p-1">
+                                    <i class="fa-solid fa-trash-can text-xs"></i>
+                                </button>
+                            </div>
                         </div>
                     `;
                 }
 
-                // Default Collage Grid Card
+                // DEFAULT PRINTABLE COLLAGE GRID CARD
                 return `
-                    <div class="print-card bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col transition hover:shadow-md">
-                        <div class="relative bg-slate-100 aspect-square overflow-hidden cursor-pointer" onclick="toggleReveal('${person.id}')">
-                            <img src="${photoSrc}" onerror="this.src='https://placehold.co/300x300/cbd5e1/475569?text=No+Photo'" 
-                                class="w-full h-full object-cover transition-transform duration-300 hover:scale-105" alt="${person.name}">
+                    <div class="print-card bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col transition hover:shadow-md group">
+                        <!-- Photo Box -->
+                        <div class="relative bg-slate-100 aspect-profile overflow-hidden cursor-pointer" onclick="toggleReveal('${person.id}')">
+                            <img src="${photoSrc}" onerror="this.src='${fallbackSvg}'" 
+                                class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="${person.name}">
+                            
                             ${studyMode ? `
-                                <div class="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px] flex items-center justify-center ${isRevealed ? 'hidden' : ''}">
-                                    <span class="bg-slate-900/80 text-white px-3 py-1 rounded-full text-xs font-semibold flex items-center gap-1 shadow">
+                                <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] flex items-center justify-center ${isRevealed ? 'hidden' : ''}">
+                                    <span class="bg-slate-900/80 text-white px-2.5 py-1 rounded-full text-[11px] font-medium flex items-center gap-1 shadow">
                                         <i class="fa-solid fa-eye-slash"></i> Click to Reveal
                                     </span>
                                 </div>
                             ` : ''}
                         </div>
+
+                        <!-- Card Info Content -->
                         <div class="p-3 flex-grow flex flex-col justify-between">
                             <div>
-                                <h3 class="font-bold text-slate-800 text-sm leading-snug mb-0.5 ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none cursor-pointer' : ''}" onclick="toggleReveal('${person.id}')">
+                                <h3 class="font-bold text-slate-900 text-xs leading-snug mb-0.5 ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none cursor-pointer study-masked' : ''}" onclick="toggleReveal('${person.id}')">
                                     ${isHidden ? '████████████' : person.name}
                                 </h3>
-                                <p class="text-xs text-slate-500 leading-snug line-clamp-2">${person.role || 'Faculty'}</p>
+                                <p class="text-[11px] text-slate-500 leading-snug line-clamp-2">${person.role || 'Position / Role'}</p>
                             </div>
-                            <div class="memo-notes mt-2 pt-2 border-t border-slate-100 text-[11px] text-indigo-600 flex justify-between items-center">
-                                <span class="truncate">${person.note || 'No notes added'}</span>
-                                <button onclick="deletePerson('${person.id}')" class="text-slate-300 hover:text-rose-500 no-print ml-1">
-                                    <i class="fa-solid fa-trash-can text-xs"></i>
-                                </button>
+
+                            <!-- Footer / Notes & Actions -->
+                            <div class="mt-2 pt-2 border-t border-slate-100 text-[10px] text-slate-400 flex justify-between items-center">
+                                <span class="truncate italic">${person.note || 'No notes added'}</span>
+                                <div class="flex items-center gap-1.5 no-print shrink-0 opacity-80 group-hover:opacity-100">
+                                    <button onclick="openEditModal('${person.id}')" title="Edit Profile" class="hover:text-indigo-600">
+                                        <i class="fa-solid fa-pen text-xs"></i>
+                                    </button>
+                                    <button onclick="deleteProfile('${person.id}', event)" title="Delete" class="hover:text-rose-600">
+                                        <i class="fa-solid fa-trash-can text-xs"></i>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -458,68 +966,17 @@
             }).join('');
         }
 
-        function filterPeople() {
+        // Helper Demo Data Loader
+        function loadSampleDemoData() {
+            roster = [
+                { id: '1', name: "Dr. Yuxin Chen", role: "Assistant Professor of Instructional Design", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80", note: "Department Head / Office 302" },
+                { id: '2', name: "Dr. Marcus Vance", role: "Associate Director of Computer Science", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80", note: "Sits near the main library" },
+                { id: '3', name: "Elena Rostova", role: "Senior Instructional Coordinator", photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80", note: "Speaks French & Spanish" },
+                { id: '4', name: "David Miller", role: "Educational Technology Specialist", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80", note: "EdTech Lead" }
+            ];
+            saveRoster();
             renderGrid();
-        }
-
-        function deletePerson(id) {
-            peopleList = peopleList.filter(p => p.id !== id);
-            renderGrid();
-        }
-
-        function openModal(id) {
-            document.getElementById(id).classList.remove('hidden');
-        }
-
-        function closeModal(id) {
-            document.getElementById(id).classList.add('hidden');
-        }
-
-        function handleAddPerson(e) {
-            e.preventDefault();
-            const name = document.getElementById('addName').value.trim();
-            const role = document.getElementById('addRole').value.trim();
-            const photo = document.getElementById('addPhotoUrl').value.trim();
-            const note = document.getElementById('addNote').value.trim();
-
-            if (!name) return;
-
-            peopleList.push({
-                id: Date.now().toString(),
-                name,
-                role,
-                photo,
-                note
-            });
-
-            // Reset form
-            e.target.reset();
-            closeModal('addModal');
-            renderGrid();
-        }
-
-        function handleBulkAdd(e) {
-            e.preventDefault();
-            const text = document.getElementById('bulkData').value.trim();
-            if (!text) return;
-
-            const lines = text.split('\n');
-            lines.forEach((line, index) => {
-                const parts = line.split(',');
-                if (parts[0] && parts[0].trim()) {
-                    peopleList.push({
-                        id: (Date.now() + index).toString(),
-                        name: parts[0] ? parts[0].trim() : 'Unknown Name',
-                        role: parts[1] ? parts[1].trim() : '',
-                        photo: parts[2] ? parts[2].trim() : '',
-                        note: parts[3] ? parts[3].trim() : ''
-                    });
-                }
-            });
-
-            e.target.reset();
-            closeModal('bulkModal');
-            renderGrid();
+            showToast("Demo roster loaded!", "fa-circle-check text-emerald-400");
         }
     </script>
 </body>
