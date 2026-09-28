@@ -8,6 +8,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
@@ -17,12 +18,10 @@
             color: #1e293b;
         }
 
-        /* Aspect ratio container for profile images */
         .aspect-profile {
             aspect-ratio: 4 / 4.5;
         }
 
-        /* Custom scrollbar for preview modal */
         .custom-scrollbar::-webkit-scrollbar {
             width: 6px;
         }
@@ -34,22 +33,14 @@
             border-radius: 4px;
         }
 
-        /* 3D Flip Effects for Flashcards */
-        .perspective-1000 {
-            perspective: 1000px;
-        }
-        .transform-style-3d {
-            transform-style: preserve-3d;
-        }
-        .backface-hidden {
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-        }
-        .rotate-y-180 {
-            transform: rotateY(180deg);
+        /* Active Recall Masking Styles */
+        .study-masked {
+            filter: blur(8px);
+            user-select: none;
+            transition: filter 0.2s ease-in-out;
         }
 
-        /* Dedicated Print Stylesheet */
+        /* Dedicated Print Stylesheet for A4 / Letter Export */
         @media print {
             .no-print {
                 display: none !important;
@@ -75,13 +66,13 @@
             }
             .print-grid {
                 display: grid !important;
-                grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+                grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
                 gap: 12pt !important;
             }
             .print-card {
-                border: 1px solid #94a3b8 !important;
+                border: 1px solid #cbd5e1 !important;
                 border-radius: 6px !important;
-                padding: 8pt !important;
+                padding: 6pt !important;
                 box-shadow: none !important;
                 page-break-inside: avoid;
                 break-inside: avoid;
@@ -94,6 +85,7 @@
                 border-radius: 4px !important;
             }
             .study-masked {
+                filter: none !important;
                 background-color: transparent !important;
                 color: transparent !important;
                 border-bottom: 1px dashed #000 !important;
@@ -111,8 +103,8 @@
                     <i class="fa-solid fa-id-card text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="text-lg font-bold tracking-tight text-white leading-none">Name & Profile Memo Studio</h1>
-                    <p class="text-xs text-slate-400 mt-1">Universal Directory Generator & Flashcard Active Recall Tool</p>
+                    <h1 class="text-lg font-bold tracking-tight text-white leading-none">Universal Name & Profile Studio</h1>
+                    <p class="text-xs text-slate-400 mt-1">Directory Extractor, Active Recall Flashcards & Print Generator</p>
                 </div>
             </div>
 
@@ -120,7 +112,7 @@
             <div class="flex items-center gap-2">
                 <button onclick="openModal('importModal')" class="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-2 rounded-lg font-medium text-xs flex items-center gap-2 shadow transition">
                     <i class="fa-solid fa-plus"></i>
-                    <span>Add Profiles</span>
+                    <span>Add / Scrape Profiles</span>
                 </button>
                 <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3.5 py-2 rounded-lg font-medium text-xs flex items-center gap-2 shadow transition">
                     <i class="fa-solid fa-print"></i>
@@ -138,23 +130,23 @@
             <!-- Search & Filter Input -->
             <div class="relative w-full sm:w-72">
                 <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
-                <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Search by name, role, or position..." 
+                <input type="text" id="searchInput" oninput="filterProfiles()" placeholder="Search name, position, or note..." 
                     class="w-full pl-8 pr-3 py-2 rounded-lg border border-slate-300 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
             </div>
 
-            <!-- Controls: View Modes & Study Toggle -->
+            <!-- Controls: View Modes & Active Recall Toggle -->
             <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto justify-between sm:justify-end">
                 
-                <!-- Study Mode Switch -->
+                <!-- Active Recall Switch -->
                 <div class="flex items-center bg-slate-50 border border-slate-200 rounded-lg p-1">
                     <label class="inline-flex items-center cursor-pointer px-2.5 py-1">
                         <input type="checkbox" id="studyModeToggle" onchange="toggleStudyMode()" class="sr-only peer">
                         <div class="relative w-8 h-4.5 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-indigo-600"></div>
-                        <span class="ms-2 text-xs font-semibold text-slate-700">Study Mode (Hide Names)</span>
+                        <span class="ms-2 text-xs font-semibold text-slate-700">Active Recall (Hide Details)</span>
                     </label>
                 </div>
 
-                <!-- Layout Mode Buttons -->
+                <!-- View Layout Buttons -->
                 <div class="flex bg-slate-100 p-1 rounded-lg border border-slate-200 text-xs">
                     <button onclick="setViewMode('collage')" id="btnViewCollage" class="px-3 py-1.5 rounded-md font-medium text-indigo-700 bg-white shadow-sm transition">
                         <i class="fa-solid fa-border-all mr-1"></i> Grid
@@ -167,39 +159,38 @@
                     </button>
                 </div>
 
-                <!-- Danger / Reset Button -->
+                <!-- Reset Button -->
                 <button onclick="clearRoster()" title="Clear Roster" class="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-rose-50 transition border border-transparent hover:border-rose-200">
                     <i class="fa-solid fa-trash-can text-sm"></i>
                 </button>
             </div>
         </section>
 
-        <!-- Printable Document Title (Visible only when printed) -->
+        <!-- Printable Document Header (Only in print) -->
         <div class="hidden print-header">
-            <h1 class="text-xl font-bold uppercase tracking-wider">Profile Directory & Name Memo Sheet</h1>
-            <p class="text-xs text-slate-600">Generated via Name & Profile Memo Studio</p>
+            <h1 class="text-xl font-bold uppercase tracking-wider">Faculty & Profile Directory</h1>
+            <p class="text-xs text-slate-600">Generated with Universal Name & Profile Studio</p>
         </div>
 
-        <!-- Profile Render Area -->
+        <!-- Roster Display Area -->
         <section id="rosterSection">
-            <!-- Header Count Bar -->
             <div class="flex justify-between items-center mb-4 px-1">
                 <h2 class="text-xs font-bold uppercase tracking-wider text-slate-500">
                     Profiles Loaded (<span id="profileCount">0</span>)
                 </h2>
                 <div class="flex items-center gap-3 no-print">
                     <button onclick="openModal('addSingleModal')" class="text-xs font-medium text-indigo-600 hover:text-indigo-800 flex items-center gap-1">
-                        <i class="fa-solid fa-user-plus"></i> Add Individual Profile
+                        <i class="fa-solid fa-user-plus"></i> Add Profile Manually
                     </button>
                 </div>
             </div>
 
             <!-- Dynamic Profile Grid -->
             <div id="profileGrid" class="print-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Injected via JavaScript -->
+                <!-- Cards Injected via JS -->
             </div>
 
-            <!-- Blank / Empty State Dropzone -->
+            <!-- Clean Default State Dropzone -->
             <div id="emptyState" class="bg-white rounded-xl border-2 border-dashed border-slate-300 p-8 sm:p-12 text-center my-4">
                 <div class="max-w-md mx-auto">
                     <div class="w-16 h-16 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
@@ -207,16 +198,16 @@
                     </div>
                     <h3 class="text-base font-bold text-slate-800 mb-1">Your Profile Directory is Empty</h3>
                     <p class="text-xs text-slate-500 mb-6 leading-relaxed">
-                        Fetch website profiles automatically, upload images, paste raw HTML, or import files to generate your printable name memo sheet.
+                        Fetch website profiles automatically using smart CORS proxies, paste raw HTML or page sources directly, or upload profile images to start building your sheet.
                     </p>
                     <div class="flex flex-wrap justify-center gap-3">
                         <button onclick="openModal('importModal')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2.5 rounded-lg text-xs font-semibold shadow transition flex items-center gap-2">
                             <i class="fa-solid fa-wand-magic-sparkles"></i>
-                            <span>Import & Fetch Profiles</span>
+                            <span>Import or Scrape Profiles</span>
                         </button>
                         <button onclick="loadSampleDemoData()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-300 px-4 py-2.5 rounded-lg text-xs font-semibold transition flex items-center gap-2">
                             <i class="fa-solid fa-vial"></i>
-                            <span>Load Demo Roster</span>
+                            <span>Load Demo Profiles</span>
                         </button>
                     </div>
                 </div>
@@ -232,23 +223,23 @@
             <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center border-b border-slate-800">
                 <div class="flex items-center gap-2.5">
                     <i class="fa-solid fa-file-import text-indigo-400"></i>
-                    <h3 class="font-bold text-base">Import & Fetch Profiles</h3>
+                    <h3 class="font-bold text-base">Import & Extract Directory Profiles</h3>
                 </div>
                 <button onclick="closeModal('importModal')" class="text-slate-400 hover:text-white transition">
                     <i class="fa-solid fa-xmark text-lg"></i>
                 </button>
             </div>
 
-            <!-- Modal Navigation Tabs -->
+            <!-- Navigation Tabs -->
             <div class="bg-slate-100 border-b border-slate-200 px-6 flex gap-4 text-xs font-medium">
                 <button onclick="switchImportTab('url')" id="tabBtnUrl" class="py-3 border-b-2 border-indigo-600 text-indigo-600 font-semibold transition">
                     <i class="fa-solid fa-globe mr-1"></i> Web URL Scraper
                 </button>
                 <button onclick="switchImportTab('html')" id="tabBtnHtml" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
-                    <i class="fa-solid fa-code mr-1"></i> Paste Raw HTML/Text
+                    <i class="fa-solid fa-code mr-1"></i> Paste HTML Source
                 </button>
                 <button onclick="switchImportTab('files')" id="tabBtnFiles" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
-                    <i class="fa-solid fa-images mr-1"></i> Batch Upload Photos
+                    <i class="fa-solid fa-images mr-1"></i> Canvas & Photo Upload
                 </button>
                 <button onclick="switchImportTab('data')" id="tabBtnData" class="py-3 border-b-2 border-transparent text-slate-600 hover:text-slate-900 transition">
                     <i class="fa-solid fa-file-csv mr-1"></i> CSV / JSON
@@ -258,18 +249,18 @@
             <!-- Modal Content Body -->
             <div class="p-6 overflow-y-auto custom-scrollbar flex-grow space-y-4">
                 
-                <!-- TAB 1: Live Web URL Fetcher -->
+                <!-- TAB 1: Smart CORS Scraper -->
                 <div id="tabContentUrl" class="space-y-4">
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Enter any school, department, or company team directory URL. The scraper fetches public HTML images and names automatically via CORS proxies.
+                        Enter any directory URL. Uses intelligent proxy fallbacks (AllOrigins, CORSProxy.io, CodeTabs) with auto-retries.
                     </p>
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-700">Target Faculty or Team Page URL</label>
+                        <label class="block text-xs font-bold text-slate-700">Target Faculty or Team Directory Page URL</label>
                         <div class="flex gap-2">
                             <input type="url" id="fetchUrlInput" placeholder="https://example-university.edu/faculty-directory" 
                                 class="flex-grow px-3 py-2 border border-slate-300 rounded-lg text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                             <button onclick="scrapeWebsiteURL()" id="btnScrapeUrl" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-xs font-semibold shrink-0 transition flex items-center gap-1.5">
-                                <i class="fa-solid fa-magnifying-glass font-normal"></i>
+                                <i class="fa-solid fa-magnifying-glass"></i>
                                 <span>Scrape Page</span>
                             </button>
                         </div>
@@ -277,51 +268,50 @@
                     <div id="scrapeStatus" class="hidden p-3 rounded-lg text-xs"></div>
                 </div>
 
-                <!-- TAB 2: Raw HTML / Text Paste Parser -->
+                <!-- TAB 2: Direct Paste HTML/Text -->
                 <div id="tabContentHtml" class="hidden space-y-4">
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        If a web page is blocked by strict security or login walls, right-click the page, select <strong>"View Page Source"</strong> or copy the webpage text/HTML, and paste it here!
+                        If direct scraping is blocked by security, right-click the target web page, choose <strong>"View Page Source"</strong> or <strong>Inspect</strong>, copy the HTML content, and paste it below!
                     </p>
                     <div class="space-y-2">
-                        <label class="block text-xs font-bold text-slate-700">Paste HTML or Web Page Snippet</label>
-                        <textarea id="rawHtmlInput" rows="7" placeholder="Paste <html> or DOM structure here..." 
+                        <label class="block text-xs font-bold text-slate-700">Paste Web Page Source / HTML Snippet</label>
+                        <textarea id="rawHtmlInput" rows="7" placeholder="Paste <html> source code, elements, or DOM structure here..." 
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                     </div>
                     <button onclick="parseRawHtmlText()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-semibold transition">
-                        Parse HTML Content
+                        Parse & Extract Profiles
                     </button>
                 </div>
 
-                <!-- TAB 3: Batch Image File Drag & Drop -->
+                <!-- TAB 3: Canvas / Batch Image Upload -->
                 <div id="tabContentFiles" class="hidden space-y-4">
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Drag and drop profile photos from your computer. The app will attempt to extract names and positions directly from filenames (e.g., <code class="bg-slate-100 px-1 py-0.5 rounded border text-indigo-600">Jane_Doe_Department_Chair.jpg</code>).
+                        Upload headshots or photos. Images are automatically cropped and centered using HTML canvas element logic. Names and positions are parsed from filenames automatically.
                     </p>
                     <div id="dropZone" onclick="document.getElementById('fileImageInput').click()" 
                         class="border-2 border-dashed border-slate-300 hover:border-indigo-500 rounded-xl p-8 text-center bg-slate-50 hover:bg-indigo-50/50 cursor-pointer transition">
                         <i class="fa-solid fa-images text-3xl text-slate-400 mb-2"></i>
-                        <p class="text-xs font-bold text-slate-700">Click or Drag & Drop Image Files Here</p>
-                        <p class="text-[10px] text-slate-400 mt-1">Supports JPG, PNG, WEBP</p>
+                        <p class="text-xs font-bold text-slate-700">Click or Drag & Drop Image Files</p>
+                        <p class="text-[10px] text-slate-400 mt-1">Supports PNG, JPG, WEBP</p>
                         <input type="file" id="fileImageInput" multiple accept="image/*" class="hidden" onchange="handleImageBatchUpload(event)">
                     </div>
-                    <div id="batchUploadList" class="space-y-2 max-h-40 overflow-y-auto custom-scrollbar"></div>
                 </div>
 
-                <!-- TAB 4: CSV / JSON Document Import -->
+                <!-- TAB 4: CSV / JSON Data Import -->
                 <div id="tabContentData" class="hidden space-y-4">
                     <p class="text-xs text-slate-500 leading-relaxed">
-                        Import standard CSV spreadsheets or JSON rosters directly.
+                        Import structured roster lists via CSV format or raw text lines.
                     </p>
                     <div class="border border-slate-200 rounded-lg p-3 bg-slate-50">
-                        <label class="block text-xs font-bold text-slate-700 mb-1">CSV Format Template</label>
-                        <p class="text-[11px] text-slate-500 font-mono">Name, Position/Role, Image URL, Notes</p>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Format standard</label>
+                        <p class="text-[11px] text-slate-500 font-mono">Name, Position/Role, Image URL, Note</p>
                     </div>
                     <div>
-                        <textarea id="csvTextInput" rows="5" placeholder="Dr. Jane Doe, Assistant Professor, https://example.com/jane.jpg, Office UCOM 300" 
+                        <textarea id="csvTextInput" rows="5" placeholder="Jane Doe, Assistant Professor, https://example.com/jane.jpg, Office 101" 
                             class="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                     </div>
                     <button onclick="parseCSVText()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg text-xs font-semibold transition">
-                        Import Roster Data
+                        Import Data Roster
                     </button>
                 </div>
 
@@ -336,33 +326,33 @@
         </div>
     </div>
 
-    <!-- MODAL: Add Single Person -->
+    <!-- MODAL: Add Single Profile -->
     <div id="addSingleModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 hidden no-print">
         <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-md w-full p-6 relative">
             <button onclick="closeModal('addSingleModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
             <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-user-plus text-indigo-600"></i> Add Profile Entry
+                <i class="fa-solid fa-user-plus text-indigo-600"></i> Add Profile Manually
             </h3>
             
             <form onsubmit="handleSingleAdd(event)" class="space-y-3 text-xs">
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Full Name *</label>
-                    <input type="text" id="singleName" required placeholder="e.g., Dr. Alex Morgan" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="text" id="singleName" required placeholder="e.g., Dr. Jane Doe" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
                     <label class="block font-semibold text-slate-700 mb-1">Position / Role</label>
-                    <input type="text" id="singleRole" placeholder="e.g., Senior Research Associate" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
+                    <input type="text" id="singleRole" placeholder="e.g., Associate Professor" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Profile Photo URL or Upload File</label>
+                    <label class="block font-semibold text-slate-700 mb-1">Photo URL or Upload File</label>
                     <input type="text" id="singlePhotoUrl" placeholder="https://example.com/photo.jpg" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-1">
                     <input type="file" id="singlePhotoFile" accept="image/*" onchange="handleSingleFileChange(event)" class="block w-full text-[11px] text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Notes / Mnemonic Hint</label>
-                    <textarea id="singleNote" rows="2" placeholder="e.g., Sits near room 204, wears round glasses" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
+                    <label class="block font-semibold text-slate-700 mb-1">Note / Memory Hint</label>
+                    <textarea id="singleNote" rows="2" placeholder="e.g., Office 302, wears round glasses" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
                     <button type="button" onclick="closeModal('addSingleModal')" class="px-4 py-2 border border-slate-300 rounded-lg font-medium text-slate-600 hover:bg-slate-50">Cancel</button>
@@ -379,7 +369,7 @@
                 <i class="fa-solid fa-xmark text-lg"></i>
             </button>
             <h3 class="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Edit Profile
+                <i class="fa-solid fa-pen-to-square text-indigo-600"></i> Edit Profile Details
             </h3>
             
             <form onsubmit="handleEditSave(event)" class="space-y-3 text-xs">
@@ -397,7 +387,7 @@
                     <input type="text" id="editPhotoUrl" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none">
                 </div>
                 <div>
-                    <label class="block font-semibold text-slate-700 mb-1">Notes / Mnemonic Hint</label>
+                    <label class="block font-semibold text-slate-700 mb-1">Note / Memory Hint</label>
                     <textarea id="editNote" rows="2" class="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:outline-none"></textarea>
                 </div>
                 <div class="flex justify-end gap-2 pt-2">
@@ -408,27 +398,26 @@
         </div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Notification Toast -->
     <div id="toastNotification" class="fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center gap-3 transition-all transform translate-y-20 opacity-0 pointer-events-none no-print border border-slate-700 text-xs">
         <i id="toastIcon" class="fa-solid fa-circle-info text-indigo-400"></i>
         <span id="toastMsg">Notification message</span>
     </div>
 
     <script>
-        // Global Application State
+        // Application State
         let roster = [];
-        let viewMode = 'collage'; // 'collage' | 'flashcard' | 'list'
+        let viewMode = 'collage';
         let studyMode = false;
         let revealedCards = new Set();
         let singleUploadedBase64 = '';
 
-        // Initialize App
+        // App Initialization
         window.addEventListener('DOMContentLoaded', () => {
             loadSavedRoster();
             renderGrid();
         });
 
-        // Save & Load Local Storage
         function saveRoster() {
             localStorage.setItem('universal_name_memo_roster', JSON.stringify(roster));
         }
@@ -444,7 +433,6 @@
             }
         }
 
-        // Show Toast Helper
         function showToast(message, iconClass = "fa-circle-info text-indigo-400") {
             const toast = document.getElementById('toastNotification');
             const toastMsg = document.getElementById('toastMsg');
@@ -459,7 +447,6 @@
             }, 3500);
         }
 
-        // Modal Management
         function openModal(id) {
             document.getElementById(id).classList.remove('hidden');
         }
@@ -482,7 +469,6 @@
             });
         }
 
-        // Clear Roster
         function clearRoster() {
             if (roster.length === 0) return;
             if (confirm("Are you sure you want to clear all loaded profiles from your memo roster?")) {
@@ -494,7 +480,44 @@
             }
         }
 
-        // Scrape Live Web URL
+        // Smart Multi-CORS Proxy Web Scraper with Fallback & Retry Logic
+        async function fetchWithProxyFallback(url) {
+            const proxies = [
+                // Proxy 1: AllOrigins
+                async (target) => {
+                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
+                    if (!res.ok) throw new Error("AllOrigins failed");
+                    const json = await res.json();
+                    return json.contents;
+                },
+                // Proxy 2: CORSProxy.io
+                async (target) => {
+                    const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(target)}`);
+                    if (!res.ok) throw new Error("CORSProxy.io failed");
+                    return await res.text();
+                },
+                // Proxy 3: CodeTabs Proxy
+                async (target) => {
+                    const res = await fetch(`https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(target)}`);
+                    if (!res.ok) throw new Error("CodeTabs failed");
+                    return await res.text();
+                }
+            ];
+
+            let lastErr = null;
+            for (let i = 0; i < proxies.length; i++) {
+                try {
+                    const html = await proxies[i](url);
+                    if (html && html.length > 50) {
+                        return html;
+                    }
+                } catch (e) {
+                    lastErr = e;
+                }
+            }
+            throw lastErr || new Error("All proxy attempts failed.");
+        }
+
         async function scrapeWebsiteURL() {
             const urlInput = document.getElementById('fetchUrlInput').value.trim();
             const statusBox = document.getElementById('scrapeStatus');
@@ -508,72 +531,60 @@
             btn.disabled = true;
             btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Fetching...`;
             statusBox.className = "p-3 rounded-lg text-xs bg-slate-100 text-slate-700 block border border-slate-200";
-            statusBox.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-indigo-600 mr-1.5"></i> Connecting to target webpage via proxy...`;
+            statusBox.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-indigo-600 mr-1.5"></i> Trying proxy chains to scrape webpage...`;
 
             try {
-                // Public CORS proxies fallback chain
-                const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(urlInput)}`;
-                const response = await fetch(proxyUrl);
-                
-                if (!response.ok) throw new Error("Network response failed");
-                const data = await response.json();
-                
-                if (data && data.contents) {
-                    const parsed = parseHTMLContent(data.contents, urlInput);
-                    if (parsed.length > 0) {
-                        roster = [...roster, ...parsed];
-                        saveRoster();
-                        renderGrid();
-                        closeModal('importModal');
-                        showToast(`Successfully extracted ${parsed.length} profiles!`, "fa-circle-check text-emerald-400");
-                    } else {
-                        statusBox.className = "p-3 rounded-lg text-xs bg-amber-50 text-amber-800 border border-amber-200";
-                        statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Could not identify standardized profile cards automatically. Try copying page HTML directly into the <strong>Paste Raw HTML</strong> tab!`;
-                    }
+                const htmlText = await fetchWithProxyFallback(urlInput);
+                const parsed = parseHTMLContent(htmlText, urlInput);
+
+                if (parsed.length > 0) {
+                    roster = [...roster, ...parsed];
+                    saveRoster();
+                    renderGrid();
+                    closeModal('importModal');
+                    showToast(`Extracted ${parsed.length} profiles successfully!`, "fa-circle-check text-emerald-400");
                 } else {
-                    throw new Error("No readable HTML contents");
+                    statusBox.className = "p-3 rounded-lg text-xs bg-amber-50 text-amber-800 border border-amber-200";
+                    statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-500 mr-1.5"></i> Could not identify profile cards automatically. Please use the <strong>Paste HTML Source</strong> tab!`;
                 }
             } catch (err) {
                 statusBox.className = "p-3 rounded-lg text-xs bg-rose-50 text-rose-800 border border-rose-200";
-                statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 mr-1.5"></i> Failed to scrape directly due to server security. Please use the <strong>Paste Raw HTML</strong> tab to import!`;
+                statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-500 mr-1.5"></i> Web scrapers blocked by target host. Please open the target site, right-click -> View Page Source, and paste into the <strong>Paste HTML Source</strong> tab!`;
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = `<i class="fa-solid fa-magnifying-glass"></i> Scrape Page`;
             }
         }
 
-        // Parse HTML DOM structure for images, names, and positions
+        // Parser for raw HTML and DOM structure
         function parseHTMLContent(htmlText, baseUrl = "") {
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, 'text/html');
             const extracted = [];
 
-            // Attempt to find image elements
             const images = Array.from(doc.querySelectorAll('img'));
 
-            images.forEach((img, idx) => {
-                let src = img.getAttribute('src') || img.getAttribute('data-src') || '';
+            images.forEach((img) => {
+                let src = img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('srcset') || '';
                 if (!src) return;
 
-                // Handle relative URLs
+                if (src.includes(' ')) src = src.split(' ')[0];
+
                 if (baseUrl && !src.startsWith('http') && !src.startsWith('data:')) {
                     try {
                         src = new URL(src, baseUrl).href;
                     } catch(e){}
                 }
 
-                // Filter out tiny icons, buttons, or logos
+                // Filter non-profile graphics
                 const width = img.getAttribute('width');
-                const height = img.getAttribute('height');
-                if (width && parseInt(width) < 50) return;
-                if (src.includes('logo') || src.includes('icon') || src.includes('header')) return;
+                if (width && parseInt(width) < 40) return;
+                if (src.includes('logo') || src.includes('icon') || src.includes('banner') || src.includes('avatar-placeholder')) return;
 
-                // Candidate Name extraction
                 let candidateName = img.getAttribute('alt') || img.getAttribute('title') || "";
                 let candidateRole = "";
 
-                // Look at parent containers for headers/titles
-                const parent = img.closest('div, li, tr, article, section') || img.parentElement;
+                const parent = img.closest('div, li, tr, article, section, td') || img.parentElement;
                 if (parent) {
                     const textElements = parent.querySelectorAll('h1, h2, h3, h4, h5, strong, b, a');
                     textElements.forEach(el => {
@@ -585,9 +596,8 @@
                         }
                     });
 
-                    // Search for paragraph or small tags for positions
                     if (!candidateRole) {
-                        const subText = parent.querySelector('p, span, .title, .position, .role');
+                        const subText = parent.querySelector('p, span, .title, .position, .role, .subtitle');
                         if (subText && subText.innerText.trim() !== candidateName) {
                             candidateRole = subText.innerText.trim();
                         }
@@ -598,14 +608,14 @@
                     extracted.push({
                         id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
                         name: candidateName.replace(/\s+/g, ' ').trim(),
-                        role: candidateRole ? candidateRole.replace(/\s+/g, ' ').trim() : 'Team / Faculty Member',
+                        role: candidateRole ? candidateRole.replace(/\s+/g, ' ').trim() : 'Faculty / Staff Member',
                         photo: src,
                         note: ''
                     });
                 }
             });
 
-            // Deduplicate by name & image
+            // Deduplicate profiles
             const unique = [];
             const seen = new Set();
             extracted.forEach(item => {
@@ -619,11 +629,10 @@
             return unique;
         }
 
-        // Parse Raw HTML Input
         function parseRawHtmlText() {
             const raw = document.getElementById('rawHtmlInput').value;
             if (!raw.trim()) {
-                alert("Please paste HTML or copied text snippet.");
+                alert("Please paste HTML or copied source snippet.");
                 return;
             }
 
@@ -636,53 +645,82 @@
                 document.getElementById('rawHtmlInput').value = '';
                 showToast(`Extracted ${parsed.length} profiles from HTML!`, "fa-circle-check text-emerald-400");
             } else {
-                alert("Could not extract profile images or names from the pasted HTML snippet.");
+                alert("Could not extract profile images or names from pasted HTML.");
             }
         }
 
-        // Batch File Upload with automatic filename parsing
-        function handleImageBatchUpload(event) {
-            const files = Array.from(event.target.files);
-            if (!files.length) return;
-
-            let count = 0;
-            files.forEach(file => {
+        // Canvas Processing for Center Crop Uploads
+        function processImageWithCanvas(file) {
+            return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
-                    const base64 = e.target.result;
-                    
-                    // Parse filename e.g. "Jane_Doe_Professor.jpg"
-                    let cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-                    let nameParts = cleanName.split(' ');
-                    let parsedName = cleanName;
-                    let parsedRole = "Team Member";
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Set standard 4:4.5 resolution
+                        canvas.width = 400;
+                        canvas.height = 450;
 
-                    if (nameParts.length > 2) {
-                        parsedName = `${nameParts[0]} ${nameParts[1]}`;
-                        parsedRole = nameParts.slice(2).join(' ');
-                    }
+                        // Center crop logic
+                        const targetRatio = 400 / 450;
+                        const sourceRatio = img.width / img.height;
 
-                    roster.push({
-                        id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-                        name: parsedName,
-                        role: parsedRole,
-                        photo: base64,
-                        note: `Uploaded file: ${file.name}`
-                    });
+                        let sw, sh, sx, sy;
+                        if (sourceRatio > targetRatio) {
+                            sh = img.height;
+                            sw = img.height * targetRatio;
+                            sx = (img.width - sw) / 2;
+                            sy = 0;
+                        } else {
+                            sw = img.width;
+                            sh = img.width / targetRatio;
+                            sx = 0;
+                            sy = (img.height - sh) / 2;
+                        }
 
-                    count++;
-                    if (count === files.length) {
-                        saveRoster();
-                        renderGrid();
-                        closeModal('importModal');
-                        showToast(`Uploaded and formatted ${files.length} photos!`, "fa-circle-check text-emerald-400");
-                    }
+                        ctx.drawImage(img, sx, sy, sw, sh, 0, 0, 400, 450);
+                        resolve(canvas.toDataURL('image/jpeg', 0.85));
+                    };
+                    img.src = e.target.result;
                 };
                 reader.readAsDataURL(file);
             });
         }
 
-        // Parse CSV Text
+        async function handleImageBatchUpload(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+
+            for (let file of files) {
+                const croppedDataUrl = await processImageWithCanvas(file);
+                
+                let cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
+                let nameParts = cleanName.split(' ');
+                let parsedName = cleanName;
+                let parsedRole = "Team Member";
+
+                if (nameParts.length > 2) {
+                    parsedName = `${nameParts[0]} ${nameParts[1]}`;
+                    parsedRole = nameParts.slice(2).join(' ');
+                }
+
+                roster.push({
+                    id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
+                    name: parsedName,
+                    role: parsedRole,
+                    photo: croppedDataUrl,
+                    note: `File: ${file.name}`
+                });
+            }
+
+            saveRoster();
+            renderGrid();
+            closeModal('importModal');
+            showToast(`Processed and auto-cropped ${files.length} images!`, "fa-circle-check text-emerald-400");
+        }
+
         function parseCSVText() {
             const text = document.getElementById('csvTextInput').value.trim();
             if (!text) return;
@@ -696,7 +734,7 @@
                     roster.push({
                         id: (Date.now() + idx).toString(),
                         name: parts[0] ? parts[0].trim() : 'Unknown Profile',
-                        role: parts[1] ? parts[1].trim() : '',
+                        role: parts[1] ? parts[1].trim() : 'Team Member',
                         photo: parts[2] ? parts[2].trim() : '',
                         note: parts[3] ? parts[3].trim() : ''
                     });
@@ -711,19 +749,15 @@
             showToast(`Imported ${added} profiles from CSV`, "fa-circle-check text-emerald-400");
         }
 
-        // Single File Upload Reader
         function handleSingleFileChange(event) {
             const file = event.target.files[0];
             if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    singleUploadedBase64 = e.target.result;
-                };
-                reader.readAsDataURL(file);
+                processImageWithCanvas(file).then(base64 => {
+                    singleUploadedBase64 = base64;
+                });
             }
         }
 
-        // Add Single Person
         function handleSingleAdd(e) {
             e.preventDefault();
             const name = document.getElementById('singleName').value.trim();
@@ -736,7 +770,7 @@
             roster.push({
                 id: Date.now().toString(),
                 name,
-                role: role || 'Team / Staff Member',
+                role: role || 'Faculty / Staff Member',
                 photo: singleUploadedBase64 || photoUrl,
                 note
             });
@@ -749,7 +783,6 @@
             showToast("Profile saved successfully");
         }
 
-        // Edit Profile
         function openEditModal(id) {
             const p = roster.find(item => item.id === id);
             if (!p) return;
@@ -790,7 +823,6 @@
             showToast("Profile removed", "fa-trash-can text-rose-400");
         }
 
-        // View Mode Switcher
         function setViewMode(mode) {
             viewMode = mode;
             ['Collage', 'Flashcard', 'List'].forEach(m => {
@@ -804,14 +836,12 @@
             renderGrid();
         }
 
-        // Toggle Study Mode
         function toggleStudyMode() {
             studyMode = document.getElementById('studyModeToggle').checked;
             revealedCards.clear();
             renderGrid();
         }
 
-        // Click to reveal card in study mode
         function toggleReveal(id) {
             if (!studyMode) return;
             if (revealedCards.has(id)) {
@@ -826,7 +856,7 @@
             renderGrid();
         }
 
-        // Render Cards Grid
+        // Render Cards Grid Function
         function renderGrid() {
             const container = document.getElementById('profileGrid');
             const emptyState = document.getElementById('emptyState');
@@ -865,7 +895,7 @@
                 const fallbackSvg = `https://placehold.co/300x350/e2e8f0/475569?text=${encodeURIComponent(person.name)}`;
                 const photoSrc = person.photo ? person.photo : fallbackSvg;
 
-                // COMPACT DIRECTORY LIST VIEW
+                // DIRECTORY LIST VIEW
                 if (viewMode === 'list') {
                     return `
                         <div class="print-card bg-white border border-slate-200 rounded-xl p-3 flex items-center justify-between gap-3 shadow-sm hover:shadow transition">
@@ -873,10 +903,10 @@
                                 <img src="${photoSrc}" onerror="this.src='${fallbackSvg}'" 
                                     class="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0 border border-slate-200" alt="${person.name}">
                                 <div class="overflow-hidden cursor-pointer" onclick="toggleReveal('${person.id}')">
-                                    <h3 class="font-bold text-slate-800 text-xs truncate ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none study-masked' : ''}">
+                                    <h3 class="font-bold text-slate-800 text-xs truncate ${isHidden ? 'study-masked' : ''}">
                                         ${isHidden ? '████████████' : person.name}
                                     </h3>
-                                    <p class="text-[11px] text-slate-500 truncate">${person.role || 'Position Title'}</p>
+                                    <p class="text-[11px] text-slate-500 truncate ${isHidden ? 'study-masked' : ''}">${isHidden ? 'Position Masked' : person.role || 'Position Title'}</p>
                                 </div>
                             </div>
                             <div class="flex items-center gap-1.5 no-print shrink-0">
@@ -904,10 +934,10 @@
                                     </span>
                                 ` : ''}
                             </div>
-                            <h3 class="font-bold text-slate-800 text-sm mb-0.5 ${isHidden ? 'bg-slate-800 text-slate-800 rounded px-3 py-0.5 select-none study-masked' : ''}">
+                            <h3 class="font-bold text-slate-800 text-sm mb-0.5 ${isHidden ? 'study-masked' : ''}">
                                 ${isHidden ? '??? Click to Reveal' : person.name}
                             </h3>
-                            <p class="text-xs text-slate-500 mb-2">${person.role || 'Team Member'}</p>
+                            <p class="text-xs text-slate-500 mb-2 ${isHidden ? 'study-masked' : ''}">${isHidden ? 'Role Masked' : person.role || 'Team Member'}</p>
                             ${person.note ? `<span class="inline-block bg-slate-100 text-slate-600 border border-slate-200 px-2 py-0.5 rounded text-[10px] font-medium max-w-full truncate">${person.note}</span>` : ''}
                             
                             <div class="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition no-print flex gap-1 bg-white/90 p-1 rounded-lg border border-slate-200 shadow-sm">
@@ -922,10 +952,10 @@
                     `;
                 }
 
-                // DEFAULT PRINTABLE COLLAGE GRID CARD
+                // STANDARD PHOTO GRID LAYOUT (Photo Top, Name, Position)
                 return `
                     <div class="print-card bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden flex flex-col transition hover:shadow-md group">
-                        <!-- Photo Box -->
+                        <!-- Photo Box (Top) -->
                         <div class="relative bg-slate-100 aspect-profile overflow-hidden cursor-pointer" onclick="toggleReveal('${person.id}')">
                             <img src="${photoSrc}" onerror="this.src='${fallbackSvg}'" 
                                 class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" alt="${person.name}">
@@ -933,19 +963,19 @@
                             ${studyMode ? `
                                 <div class="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px] flex items-center justify-center ${isRevealed ? 'hidden' : ''}">
                                     <span class="bg-slate-900/80 text-white px-2.5 py-1 rounded-full text-[11px] font-medium flex items-center gap-1 shadow">
-                                        <i class="fa-solid fa-eye-slash"></i> Click to Reveal
+                                        <i class="fa-solid fa-eye-slash"></i> Reveal Details
                                     </span>
                                 </div>
                             ` : ''}
                         </div>
 
-                        <!-- Card Info Content -->
+                        <!-- Card Info Content (Name & Position) -->
                         <div class="p-3 flex-grow flex flex-col justify-between">
                             <div>
-                                <h3 class="font-bold text-slate-900 text-xs leading-snug mb-0.5 ${isHidden ? 'bg-slate-800 text-slate-800 rounded select-none cursor-pointer study-masked' : ''}" onclick="toggleReveal('${person.id}')">
+                                <h3 class="font-bold text-slate-900 text-xs leading-snug mb-0.5 ${isHidden ? 'study-masked cursor-pointer' : ''}" onclick="toggleReveal('${person.id}')">
                                     ${isHidden ? '████████████' : person.name}
                                 </h3>
-                                <p class="text-[11px] text-slate-500 leading-snug line-clamp-2">${person.role || 'Position / Role'}</p>
+                                <p class="text-[11px] text-slate-500 leading-snug line-clamp-2 ${isHidden ? 'study-masked' : ''}">${isHidden ? 'Role Hidden' : person.role || 'Position / Role'}</p>
                             </div>
 
                             <!-- Footer / Notes & Actions -->
@@ -966,13 +996,12 @@
             }).join('');
         }
 
-        // Helper Demo Data Loader
+        // Demo Loader Function
         function loadSampleDemoData() {
             roster = [
-                { id: '1', name: "Dr. Yuxin Chen", role: "Assistant Professor of Instructional Design", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80", note: "Department Head / Office 302" },
-                { id: '2', name: "Dr. Marcus Vance", role: "Associate Director of Computer Science", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80", note: "Sits near the main library" },
-                { id: '3', name: "Elena Rostova", role: "Senior Instructional Coordinator", photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80", note: "Speaks French & Spanish" },
-                { id: '4', name: "David Miller", role: "Educational Technology Specialist", photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&auto=format&fit=crop&q=80", note: "EdTech Lead" }
+                { id: '1', name: "Dr. Yuxin Chen", role: "Assistant Professor of Instructional Design", photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&auto=format&fit=crop&q=80", note: "Office 302" },
+                { id: '2', name: "Dr. Marcus Vance", role: "Associate Director of Computer Science", photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&auto=format&fit=crop&q=80", note: "Main Library wing" },
+                { id: '3', name: "Elena Rostova", role: "Senior Instructional Coordinator", photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=400&auto=format&fit=crop&q=80", note: "Speaks French & Spanish" }
             ];
             saveRoster();
             renderGrid();
