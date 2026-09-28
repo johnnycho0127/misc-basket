@@ -7,20 +7,76 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    /* PRINT STYLING SPECIFICALLY FOR 12 PROFILES PER PAGE (3 COLS x 4 ROWS) */
     @media print {
-      body { background: white !important; color: black !important; }
-      .no-print { display: none !important; }
+      @page {
+        size: letter portrait;
+        margin: 0.4in;
+      }
+      body {
+        background: white !important;
+        color: black !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      
       .print-grid {
         display: grid !important;
-        grid-template-columns: repeat(4, 1fr) !important;
-        gap: 12px !important;
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 10px !important;
+        width: 100% !important;
       }
+
       .card-box {
-        break-inside: avoid;
-        border: 1px solid #ccc !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        border: 1px solid #cbd5e1 !important;
         box-shadow: none !important;
+        border-radius: 6px !important;
+        padding: 4px !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 2.2in !important;
       }
-      .mask-active .hide-on-quiz { display: block !important; opacity: 1 !important; filter: none !important; }
+
+      .card-box img {
+        height: 1.4in !important;
+        width: 100% !important;
+        object-fit: cover !important;
+        object-position: top !important;
+        border-radius: 4px !important;
+      }
+
+      .card-content {
+        padding: 4px 2px 0 2px !important;
+      }
+
+      .card-name {
+        font-size: 11pt !important;
+        line-height: 1.1 !important;
+        font-weight: bold !important;
+        color: #000 !important;
+      }
+
+      .card-title {
+        font-size: 8.5pt !important;
+        line-height: 1.1 !important;
+        color: #475569 !important;
+      }
+
+      .card-box:nth-child(12n) {
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+
+      .mask-active .hide-on-quiz {
+        display: block !important;
+        opacity: 1 !important;
+        filter: none !important;
+      }
     }
   </style>
 </head>
@@ -40,7 +96,7 @@
         </button>
         <button onclick="window.print()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold rounded-lg shadow transition flex items-center gap-2">
           <i class="fa-solid fa-print"></i>
-          <span>Print / Save PDF</span>
+          <span>Print / Save PDF (12/Page)</span>
         </button>
       </div>
     </div>
@@ -99,6 +155,7 @@
     <div class="flex justify-between items-center mb-6 no-print">
       <div class="text-sm text-slate-600 font-semibold">
         Profiles Loaded: <span id="profile-count" class="text-indigo-600">0</span>
+        <span class="text-xs text-slate-400 font-normal ml-2">(Layout: 3 cols × 4 rows = 12 per printed page)</span>
       </div>
       <div class="flex gap-2">
         <button onclick="addEmptyProfile()" class="px-3 py-1.5 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-medium rounded-md shadow-sm transition">
@@ -111,7 +168,7 @@
     </div>
 
     <!-- PROFILE GRID CONTAINER -->
-    <div id="profile-grid" class="print-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    <div id="profile-grid" class="print-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5">
       <!-- Dynamic profile cards load here -->
     </div>
 
@@ -122,14 +179,33 @@
     let profiles = [];
     let isQuizActive = false;
 
-    // BASE SVG AVATAR IF NO PHOTO FOUND
+    // KEYWORDS THAT IDENTIFY ORGANIZATIONS/DEPARTMENTS INSTEAD OF PERSON NAMES
+    const NON_PERSON_KEYWORDS = [
+      'department', 'center', 'advising', 'education', 'college', 'school',
+      'kinesiology', 'experiential', 'learning', 'office', 'services', 'division',
+      'university', 'program', 'sciences', 'studies', 'search', 'index', 'a-z',
+      'counseling', 'instructional', 'teacher', 'health'
+    ];
+
+    function isPersonName(name) {
+      if (!name || name.trim().length < 3) return false;
+      const lower = name.toLowerCase().trim();
+      
+      // Reject if string contains any organization keywords
+      for (const keyword of NON_PERSON_KEYWORDS) {
+        if (lower.includes(keyword)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
     function generatePlaceholder(name) {
       const initials = name ? name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() : '??';
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300"><rect width="100%" height="100%" fill="#e2e8f0"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" font-family="sans-serif" font-size="72" font-weight="bold" fill="#64748b">${initials}</text></svg>`;
       return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
     }
 
-    // NORMALIZATION UTILITY FOR RELATIVE URLS
     function makeAbsoluteUrl(relativeUrl, baseUrl) {
       if (!relativeUrl) return '';
       if (relativeUrl.startsWith('data:') || relativeUrl.startsWith('http://') || relativeUrl.startsWith('https://')) {
@@ -143,7 +219,6 @@
       }
     }
 
-    // MAIN URL SCRAPER WITH CORS PROXIES
     async function fetchFromUrl() {
       const urlInput = document.getElementById('scrape-url').value.trim();
       if (!urlInput) return alert('Please enter a directory page URL');
@@ -170,7 +245,7 @@
 
           if (htmlText && htmlText.length > 200) break;
         } catch (e) {
-          console.warn('Proxy retry failed, trying next...');
+          console.warn('Proxy retry failed...');
         }
       }
 
@@ -182,71 +257,80 @@
       parseDOMContent(htmlText, urlInput);
     }
 
-    // DOM PARSER ENGINE
+    // ENHANCED DOM PARSER ENGINE WITH DEPARTMENT FILTERING
     function parseDOMContent(htmlString, pageUrl) {
       const parser = new DOMParser();
       const doc = parser.parseFromString(htmlString, 'text/html');
       const newProfiles = [];
 
-      // Check table rows first (common for USA and college faculty lists)
+      // Check table rows first
       const rows = doc.querySelectorAll('tr');
       if (rows.length > 1) {
         rows.forEach(row => {
           const img = row.querySelector('img');
-          const textContent = row.textContent.trim();
           
-          // Filter out global headers/footers
-          if (textContent.includes('Search USA') || textContent.includes('A-Z Index')) return;
-
           let imgSrc = img ? (img.getAttribute('src') || img.getAttribute('data-src') || img.getAttribute('srcset')) : '';
           imgSrc = makeAbsoluteUrl(imgSrc, pageUrl);
 
           const links = row.querySelectorAll('a');
-          let name = '';
+          let candidateName = '';
           links.forEach(a => {
             const txt = a.textContent.trim();
-            if (txt && !txt.includes('@') && !txt.includes('(') && txt.length > 3 && !name) {
-              name = txt;
+            if (txt && !txt.includes('@') && !txt.includes('(') && txt.length > 2 && !candidateName) {
+              if (isPersonName(txt)) {
+                candidateName = txt;
+              }
             }
           });
 
-          if (name) {
-            // Reformat "LastName, FirstName" -> "FirstName LastName"
-            if (name.includes(',')) {
-              const parts = name.split(',');
-              name = `${parts[1].trim()} ${parts[0].trim()}`;
+          // Re-check inner text if link text wasn't found
+          if (!candidateName) {
+            const firstCell = row.querySelector('td, th');
+            if (firstCell && isPersonName(firstCell.textContent)) {
+              candidateName = firstCell.textContent.trim();
+            }
+          }
+
+          // ONLY ADD IF VALID PERSON NAME AND HAS REAL PHOTO
+          if (candidateName && isPersonName(candidateName) && imgSrc) {
+            if (candidateName.includes(',')) {
+              const parts = candidateName.split(',');
+              candidateName = `${parts[1].trim()} ${parts[0].trim()}`;
             }
 
             const titleMatch = row.innerText.match(/(Assistant Professor|Associate Professor|Professor|Secretary|Lecturer|Chair|Instructor)[^\n]*/i);
-            const title = titleMatch ? titleMatch[0].trim() : 'Faculty / Staff Member';
+            const title = titleMatch ? titleMatch[0].trim() : 'Faculty Member';
 
             newProfiles.push({
               id: Date.now() + Math.random(),
-              name: name,
+              name: candidateName,
               title: title,
-              image: imgSrc || generatePlaceholder(name),
+              image: imgSrc,
               notes: ''
             });
           }
         });
       }
 
-      // Fallback for card/grid elements if no table rows matched
+      // Fallback for card structures
       if (newProfiles.length === 0) {
         const cards = doc.querySelectorAll('.faculty, .profile, .directory-item, .person, article');
         cards.forEach(card => {
           const img = card.querySelector('img');
           const nameEl = card.querySelector('h2, h3, h4, .name, strong');
-          if (nameEl) {
+          if (nameEl && isPersonName(nameEl.textContent)) {
             let imgSrc = img ? (img.getAttribute('src') || img.getAttribute('data-src')) : '';
             imgSrc = makeAbsoluteUrl(imgSrc, pageUrl);
-            newProfiles.push({
-              id: Date.now() + Math.random(),
-              name: nameEl.textContent.trim(),
-              title: 'Faculty / Staff Member',
-              image: imgSrc || generatePlaceholder(nameEl.textContent.trim()),
-              notes: ''
-            });
+            
+            if (imgSrc) {
+              newProfiles.push({
+                id: Date.now() + Math.random(),
+                name: nameEl.textContent.trim(),
+                title: 'Faculty Member',
+                image: imgSrc,
+                notes: ''
+              });
+            }
           }
         });
       }
@@ -255,11 +339,10 @@
         profiles = [...profiles, ...newProfiles];
         renderRoster();
       } else {
-        alert('No profiles could be extracted automatically. Try pasting HTML content directly in Tab 2.');
+        alert('No valid faculty profiles with headshots were detected. Make sure to paste the directory table section directly!');
       }
     }
 
-    // PASTE HTML HANDLER
     function parseRawHTML() {
       const raw = document.getElementById('raw-html-input').value;
       const baseUrl = document.getElementById('baseUrlInput').value || 'https://www.southalabama.edu';
@@ -267,7 +350,6 @@
       parseDOMContent(raw, baseUrl);
     }
 
-    // FILE UPLOAD HANDLER
     function handleFileUpload(event) {
       const files = Array.from(event.target.files);
       files.forEach(file => {
@@ -275,21 +357,22 @@
           const reader = new FileReader();
           reader.onload = (e) => {
             const cleanName = file.name.replace(/\.[^/.]+$/, "").replace(/[-_]/g, " ");
-            profiles.push({
-              id: Date.now() + Math.random(),
-              name: cleanName,
-              title: 'Uploaded Profile',
-              image: e.target.result,
-              notes: ''
-            });
-            renderRoster();
+            if (isPersonName(cleanName)) {
+              profiles.push({
+                id: Date.now() + Math.random(),
+                name: cleanName,
+                title: 'Uploaded Profile',
+                image: e.target.result,
+                notes: ''
+              });
+              renderRoster();
+            }
           };
           reader.readAsDataURL(file);
         }
       });
     }
 
-    // RENDER ROSTER CARDS
     function renderRoster() {
       const grid = document.getElementById('profile-grid');
       document.getElementById('profile-count').textContent = profiles.length;
@@ -299,8 +382,8 @@
         grid.innerHTML = `
           <div class="col-span-full py-16 text-center text-slate-400">
             <i class="fa-solid fa-id-card-clip text-5xl mb-3"></i>
-            <p class="text-base font-medium">No profiles loaded yet</p>
-            <p class="text-xs">Fetch a directory page or upload photos above to get started.</p>
+            <p class="text-base font-medium">No faculty profiles loaded yet</p>
+            <p class="text-xs">Enter a directory URL or paste HTML to extract faculty headshots.</p>
           </div>
         `;
         return;
@@ -313,15 +396,15 @@
           <div class="relative w-full aspect-square bg-slate-100 overflow-hidden">
             <img src="${p.image}" alt="${p.name}" class="w-full h-full object-cover object-top" onerror="this.src='${generatePlaceholder(p.name)}'">
           </div>
-          <div class="p-4 flex-1 flex flex-col justify-between">
+          <div class="card-content p-3 flex-1 flex flex-col justify-between">
             <div>
-              <h3 class="font-bold text-slate-900 text-base leading-snug hide-on-quiz cursor-pointer" onclick="toggleSingleMask(this)">
+              <h3 class="card-name font-bold text-slate-900 text-sm leading-snug hide-on-quiz cursor-pointer" onclick="toggleSingleMask(this)">
                 ${p.name}
               </h3>
-              <p class="text-xs text-slate-500 mt-1 hide-on-quiz">${p.title}</p>
+              <p class="card-title text-xs text-slate-500 mt-0.5 hide-on-quiz">${p.title}</p>
             </div>
-            <div class="mt-3 pt-3 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400 no-print">
-              <span class="truncate max-w-[150px]">${p.notes || 'No notes'}</span>
+            <div class="mt-2 pt-2 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400 no-print">
+              <span class="truncate max-w-[120px]">${p.notes || 'No notes'}</span>
               <div class="flex gap-2">
                 <button onclick="editProfile('${p.id}')" class="hover:text-indigo-600"><i class="fa-solid fa-pen"></i></button>
                 <button onclick="deleteProfile('${p.id}')" class="hover:text-red-600"><i class="fa-solid fa-trash"></i></button>
@@ -333,7 +416,6 @@
       });
     }
 
-    // QUIZ / STUDY MASK TOGGLE
     function toggleQuizMode() {
       isQuizActive = !isQuizActive;
       const btn = document.getElementById('quiz-toggle');
@@ -391,7 +473,6 @@
       document.getElementById(`tab-${tab}`).classList.remove('hidden');
     }
 
-    // Initial render
     renderRoster();
   </script>
 </body>
